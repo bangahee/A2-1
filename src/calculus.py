@@ -34,6 +34,8 @@ def plot_gradient():
     ax.clabel(contour, fontsize=8)
     grid = np.linspace(-2, 2, 5)
     gx, gy = np.meshgrid(grid, grid)
+    # A 5×5 grid avoids crowding. xy units/angles preserve geometric direction;
+    # scale=7 shortens all arrows uniformly to ∇f/7 without changing direction.
     ax.quiver(gx, gy, 2 * gx, 2 * gy, color="#dc2626",
               angles="xy", scale_units="xy", scale=7, label="Gradient (2x, 2y)")
     ax.set(xlabel="x", ylabel="y", title="Gradient is perpendicular to contours")

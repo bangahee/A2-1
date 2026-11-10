@@ -71,7 +71,11 @@ def kl_divergence(p, q):
 
 
 def plot_distributions():
-    """Plot both specified Normal PDFs and both Bernoulli PMFs together."""
+    """Plot Normal PDFs at 600 points in [-4,5] and both Bernoulli PMFs.
+
+    PMF bars have width .32 and offsets ±.17, separating the two distributions
+    at each outcome without overlap. The figure is 11×4 inches, saved at 150 dpi.
+    """
     fig, axes = plt.subplots(1, 2, figsize=(11, 4), constrained_layout=True)
     x = np.linspace(-4, 5, 600)
     for mean, variance in [(0, 1), (2, 0.5)]:

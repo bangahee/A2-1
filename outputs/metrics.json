@@ -11,28 +11,54 @@
       "area_before": 3.139484022999943,
       "area_after": 3.139484022999943,
       "area_ratio": 1.0,
-      "relative_error": 0.0
+      "relative_error": 0.0,
+      "absolute_error": 0.0,
+      "error_kind": "relative"
     },
     "scaling": {
       "determinant": 1.0,
       "area_before": 3.139484022999943,
       "area_after": 3.139484022999943,
       "area_ratio": 1.0,
-      "relative_error": 0.0
+      "relative_error": 0.0,
+      "absolute_error": 0.0,
+      "error_kind": "relative"
     },
     "shear": {
       "determinant": 1.0,
       "area_before": 3.139484022999943,
       "area_after": 3.1394840229999446,
       "area_ratio": 1.0000000000000007,
-      "relative_error": 6.661338147750939e-16
+      "relative_error": 6.661338147750939e-16,
+      "absolute_error": 6.661338147750939e-16,
+      "error_kind": "relative"
     },
     "reflection": {
       "determinant": -1.0,
       "area_before": 3.139484022999943,
       "area_after": 3.139484022999943,
       "area_ratio": 1.0,
-      "relative_error": 0.0
+      "relative_error": 0.0,
+      "absolute_error": 0.0,
+      "error_kind": "relative"
+    },
+    "zero_matrix": {
+      "determinant": 0.0,
+      "area_before": 3.139484022999943,
+      "area_after": 0.0,
+      "area_ratio": 0.0,
+      "relative_error": 0.0,
+      "absolute_error": 0.0,
+      "error_kind": "absolute_near_zero_determinant"
+    },
+    "near_singular": {
+      "determinant": 9.999999999999965e-17,
+      "area_before": 3.139484022999943,
+      "area_after": 3.1394840229999427e-16,
+      "area_ratio": 1e-16,
+      "relative_error": 3.4512664603419266e-31,
+      "absolute_error": 3.4512664603419266e-31,
+      "error_kind": "absolute_near_zero_determinant"
     }
   },
   "power_iteration": {
@@ -44,6 +70,7 @@
     "iterations": 36,
     "reference": 4.618033988749895,
     "relative_error": 0.0,
+    "verification_script": "scripts/run_all.py",
     "residual": 3.6229590221024135e-10
   },
   "svd": [
@@ -52,28 +79,138 @@
       "effective_k": 10,
       "mse": 0.004753322641079626,
       "stored_values": 1290,
-      "storage_ratio": 0.31494140625
+      "storage_ratio": 0.31494140625,
+      "figure_path": "outputs/svd_comparison.png",
+      "panel_index_zero_based": 1
     },
     {
       "requested_k": 50,
       "effective_k": 50,
       "mse": 6.483132725191466e-06,
       "stored_values": 6450,
-      "storage_ratio": 1.57470703125
+      "storage_ratio": 1.57470703125,
+      "figure_path": "outputs/svd_comparison.png",
+      "panel_index_zero_based": 2
     },
     {
       "requested_k": 100,
       "effective_k": 64,
       "mse": 5.999778767479749e-31,
       "stored_values": 8256,
-      "storage_ratio": 2.015625
+      "storage_ratio": 2.015625,
+      "figure_path": "outputs/svd_comparison.png",
+      "panel_index_zero_based": 3
     }
   ],
+  "svd_image": {
+    "source_path": "data/grace_hopper_64.npy",
+    "shape": [
+      64,
+      64
+    ],
+    "comparison_figure": "outputs/svd_comparison.png",
+    "panel_ranks": [
+      10,
+      50,
+      100
+    ],
+    "effective_ranks": [
+      10,
+      50,
+      64
+    ]
+  },
   "derivative": {
     "numerical": 6.000000000039306,
     "analytical": 6.0,
     "error": 3.930633596382904e-11
   },
+  "derivative_step_study": [
+    {
+      "h": 0.1,
+      "square_derivative": 6.000000000000005,
+      "square_error": 5.329070518200751e-15,
+      "sine_derivative": 0.7635680875224365,
+      "sine_error": 0.00127409976205195
+    },
+    {
+      "h": 0.01,
+      "square_derivative": 5.999999999999872,
+      "square_error": 1.2789769243681803e-13,
+      "sine_derivative": 0.7648294399784372,
+      "sine_error": 1.2747306051275054e-05
+    },
+    {
+      "h": 0.001,
+      "square_derivative": 5.999999999999339,
+      "square_error": 6.608047442568932e-13,
+      "sine_derivative": 0.7648420598108108,
+      "sine_error": 1.2747367772458773e-07
+    },
+    {
+      "h": 0.0001,
+      "square_derivative": 6.000000000012662,
+      "square_error": 1.2661871551244985e-11,
+      "sine_derivative": 0.7648421860095844,
+      "sine_error": 1.274904071202343e-09
+    },
+    {
+      "h": 1e-05,
+      "square_derivative": 6.000000000039306,
+      "square_error": 3.930633596382904e-11,
+      "sine_derivative": 0.764842187267467,
+      "sine_error": 1.702149532434305e-11
+    },
+    {
+      "h": 1e-06,
+      "square_derivative": 6.000000000838668,
+      "square_error": 8.386678018723615e-10,
+      "sine_derivative": 0.7648421873063249,
+      "sine_error": 2.183642155983989e-11
+    },
+    {
+      "h": 1e-07,
+      "square_derivative": 5.999999990180527,
+      "square_error": 9.819473234529141e-09,
+      "sine_derivative": 0.7648421868067246,
+      "sine_error": 4.777639395214806e-10
+    },
+    {
+      "h": 1e-08,
+      "square_derivative": 5.999999963535174,
+      "square_error": 3.64648258255329e-08,
+      "sine_derivative": 0.7648421895822821,
+      "sine_error": 2.297793622041411e-09
+    },
+    {
+      "h": 1e-09,
+      "square_derivative": 6.000000496442226,
+      "square_error": 4.964422259945422e-07,
+      "sine_derivative": 0.7648421895822821,
+      "sine_error": 2.297793622041411e-09
+    },
+    {
+      "h": 1e-10,
+      "square_derivative": 6.000000496442226,
+      "square_error": 4.964422259945422e-07,
+      "sine_derivative": 0.764842633671492,
+      "sine_error": 4.4638700347210403e-07
+    },
+    {
+      "h": 1e-11,
+      "square_derivative": 6.000000496442226,
+      "square_error": 4.964422259945422e-07,
+      "sine_derivative": 0.7648437438945166,
+      "sine_error": 1.5566100280972606e-06
+    },
+    {
+      "h": 1e-12,
+      "square_derivative": 6.000533403494046,
+      "square_error": 0.0005334034940460697,
+      "sine_derivative": 0.7648326416642703,
+      "sine_error": 9.545620218154305e-06
+    }
+  ],
   "gradient_tangent_dot_product": 0.0,
   "backprop_forward": {
     "z1": [
@@ -165,6 +302,210 @@
       "final_radius": 1678.504011808838
     }
   },
+  "learning_rate_divergence": {
+    "function": "f(x,y)=x²+y²",
+    "gradient": "[2x,2y]",
+    "initial": [
+      5.0,
+      5.0
+    ],
+    "seed": 42,
+    "steps": 30,
+    "tested_interval": "lr >= 0.5",
+    "demonstrated_divergent_rates": [
+      1.1,
+      1.2,
+      1.5
+    ],
+    "exact_divergence_condition": "lr > 1",
+    "scope": "Divergent examples within the stated interval; not all rates in that range diverge.",
+    "figure": "outputs/lr_ge_0_5_divergence.png",
+    "runs": [
+      {
+        "lr": 0.5,
+        "update_factor": 0.0,
+        "expected_behavior": "convergent",
+        "final_radius": 0.0,
+        "radius_growth_factor": 0.0,
+        "every_step_grows": false,
+        "closed_form_verified": true
+      },
+      {
+        "lr": 0.75,
+        "update_factor": -0.5,
+        "expected_behavior": "convergent",
+        "final_radius": 6.585445079827193e-09,
+        "radius_growth_factor": 9.313225746154785e-10,
+        "every_step_grows": false,
+        "closed_form_verified": true
+      },
+      {
+        "lr": 1.0,
+        "update_factor": -1.0,
+        "expected_behavior": "neutral oscillation",
+        "final_radius": 7.0710678118654755,
+        "radius_growth_factor": 1.0,
+        "every_step_grows": false,
+        "closed_form_verified": true
+      },
+      {
+        "lr": 1.1,
+        "update_factor": -1.2000000000000002,
+        "expected_behavior": "divergent",
+        "final_radius": 1678.504011808838,
+        "radius_growth_factor": 237.37631379977083,
+        "every_step_grows": true,
+        "closed_form_verified": true
+      },
+      {
+        "lr": 1.2,
+        "update_factor": -1.4,
+        "expected_behavior": "divergent",
+        "final_radius": 171129.96932990657,
+        "radius_growth_factor": 24201.432355484565,
+        "every_step_grows": true,
+        "closed_form_verified": true
+      },
+      {
+        "lr": 1.5,
+        "update_factor": -2.0,
+        "expected_behavior": "divergent",
+        "final_radius": 7592501249.9401245,
+        "radius_growth_factor": 1073741824.0,
+        "every_step_grows": true,
+        "closed_form_verified": true
+      }
+    ]
+  },
+  "optimizer_experiments": [
+    {
+      "experiment": "circle",
+      "function": "x²+1y²",
+      "optimizer": "VanillaGD",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 100,
+      "lr": 0.1,
+      "beta": null,
+      "beta1": null,
+      "beta2": null,
+      "eps": null
+    },
+    {
+      "experiment": "circle",
+      "function": "x²+1y²",
+      "optimizer": "Momentum",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 100,
+      "lr": 0.1,
+      "beta": 0.9,
+      "beta1": null,
+      "beta2": null,
+      "eps": null
+    },
+    {
+      "experiment": "ellipse",
+      "function": "x²+10y²",
+      "optimizer": "VanillaGD",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 200,
+      "lr": 0.09,
+      "beta": null,
+      "beta1": null,
+      "beta2": null,
+      "eps": null
+    },
+    {
+      "experiment": "ellipse",
+      "function": "x²+10y²",
+      "optimizer": "Momentum",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 200,
+      "lr": 0.09,
+      "beta": 0.9,
+      "beta1": null,
+      "beta2": null,
+      "eps": null
+    },
+    {
+      "experiment": "bonus_optimizers",
+      "function": "x²+10y²",
+      "optimizer": "VanillaGD",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 300,
+      "lr": 0.01,
+      "beta": null,
+      "beta1": null,
+      "beta2": null,
+      "eps": null
+    },
+    {
+      "experiment": "bonus_optimizers",
+      "function": "x²+10y²",
+      "optimizer": "Momentum",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 300,
+      "lr": 0.01,
+      "beta": 0.9,
+      "beta1": null,
+      "beta2": null,
+      "eps": null
+    },
+    {
+      "experiment": "bonus_optimizers",
+      "function": "x²+10y²",
+      "optimizer": "Adam",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 300,
+      "lr": 0.1,
+      "beta": null,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-08
+    },
+    {
+      "experiment": "newton",
+      "function": "x²+10y²",
+      "optimizer": "Newton",
+      "initial": [
+        5,
+        5
+      ],
+      "seed": 42,
+      "steps": 3,
+      "lr": null,
+      "beta": null,
+      "damping": 1.0,
+      "hessian": "diag(2,20)"
+    }
+  ],
   "ellipse": {
     "GD lr=0.09": {
       "final": [
@@ -236,27 +577,192 @@
     ],
     "sum": 0.9999999999999999
   },
+  "softmax_extreme_cases": [
+    {
+      "logits": [
+        10000.0,
+        10001.0,
+        10002.0
+      ],
+      "probabilities": [
+        0.09003057317038046,
+        0.24472847105479764,
+        0.6652409557748218
+      ],
+      "sum": 0.9999999999999999
+    },
+    {
+      "logits": [
+        -10000.0,
+        -10001.0,
+        -10002.0
+      ],
+      "probabilities": [
+        0.6652409557748218,
+        0.24472847105479764,
+        0.09003057317038046
+      ],
+      "sum": 0.9999999999999999
+    },
+    {
+      "logits": [
+        1000.0,
+        -1000.0,
+        0.0
+      ],
+      "probabilities": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "sum": 1.0
+    },
+    {
+      "logits": [
+        -1000000.0,
+        -1000000.0,
+        -1000000.0
+      ],
+      "probabilities": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      "sum": 1.0
+    }
+  ],
   "information_theory": {
     "entropy": 0.6108643020548935,
     "cross_entropy": 0.7946511994417057,
     "kl_divergence": 0.1837868973868122
   },
+  "visualization_parameters": {
+    "circle_samples": 100,
+    "gradient_grid_shape": [
+      5,
+      5
+    ],
+    "gradient_scale": 7,
+    "gradient_scale_units": "xy",
+    "normal_pdf_samples": 600,
+    "normal_pdf_domain": [
+      -4,
+      5
+    ],
+    "bernoulli_bar_width": 0.32,
+    "bernoulli_bar_offsets": [
+      -0.17,
+      0.17
+    ],
+    "convergence_log_floor": 1e-30,
+    "radius_log_floor": 1e-15
+  },
+  "figures": [
+    {
+      "path": "outputs/bonus_newton.png",
+      "width_px": 1200,
+      "height_px": 675,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/bonus_optimizer_convergence.png",
+      "width_px": 1200,
+      "height_px": 675,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/bonus_optimizer_paths.png",
+      "width_px": 1050,
+      "height_px": 900,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/circle_convergence.png",
+      "width_px": 1200,
+      "height_px": 675,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/derivative_step_study.png",
+      "width_px": 1200,
+      "height_px": 675,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/ellipse_convergence.png",
+      "width_px": 1200,
+      "height_px": 675,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/gd_momentum_circle.png",
+      "width_px": 1050,
+      "height_px": 900,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/gd_momentum_ellipse.png",
+      "width_px": 1050,
+      "height_px": 900,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/gradient_contours.png",
+      "width_px": 975,
+      "height_px": 900,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/learning_rate_stability.png",
+      "width_px": 1800,
+      "height_px": 675,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/lr_ge_0_5_divergence.png",
+      "width_px": 1800,
+      "height_px": 720,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/matrix_transformations.png",
+      "width_px": 2100,
+      "height_px": 675,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/probability_distributions.png",
+      "width_px": 1650,
+      "height_px": 600,
+      "dpi": 150
+    },
+    {
+      "path": "outputs/svd_comparison.png",
+      "width_px": 2100,
+      "height_px": 600,
+      "dpi": 150
+    }
+  ],
   "acceptance_checks": {
     "determinant_area_within_1_percent": true,
+    "singular_area_absolute_error_stable": true,
     "eigenvalue_within_5_percent": true,
     "svd_requested_ranks_present": true,
     "svd_rank_cap_and_full_reconstruction": true,
     "svd_error_nonincreasing": true,
     "derivative_error_within_1e_4": true,
+    "central_difference_sine_second_order": true,
     "gradient_normal_to_contour_tangent": true,
     "all_parameter_gradients_match_finite_difference": true,
     "backprop_hand_checkpoint_4_decimals": true,
     "gd_radius_after_100_within_0_1": true,
     "lr_0_5_reaches_origin_in_one_step": true,
     "lr_1_1_diverges": true,
+    "lr_ge_0_5_divergence_examples_verified": true,
     "momentum_advantage_in_documented_setting": true,
     "newton_exact_quadratic_one_step": true,
     "softmax_sum_within_1e_6": true,
+    "softmax_extreme_cases_stable": true,
     "cross_entropy_equals_entropy_plus_kl": true
   }
 }

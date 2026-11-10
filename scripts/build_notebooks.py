@@ -169,11 +169,19 @@ def build_backprop():
             "W1": [[-0.0439785158, 0], [-0.0517335044, 0]],
             "b1": [-0.0439785158, -0.0517335044],
         }
+        from IPython.display import Markdown, display
+        comparison_rows = ["| 항목 | shape | 손계산 (4자리) | NumPy (4자리) | 일치 |",
+                           "|---|---|---|---|---|"]
         for computed, expected in [(fwd, hand_forward), (grad, hand_backward)]:
             for name, hand_value in expected.items():
                 np.testing.assert_array_equal(
                     np.round(computed[name], 4), np.round(hand_value, 4))
                 print(f"PASS {name}: {np.round(computed[name], 4)}")
+                manual = np.array2string(np.asarray(hand_value), precision=4, floatmode="fixed").replace(chr(10), " ")
+                actual = np.array2string(np.asarray(computed[name]), precision=4, floatmode="fixed").replace(chr(10), " ").replace("-0.0000", "0.0000")
+                comparison_rows.append(
+                    f"| {name} | {np.shape(computed[name])} | {manual} | {actual} | PASS |")
+        display(Markdown(chr(10).join(comparison_rows)))
         print("All forward/backward hand calculations agree to 4 decimal places.")
         """),
         ("md", r"""
@@ -258,6 +266,14 @@ def build_probability():
         print("softmax", probabilities, "sum", probabilities.sum())
         assert abs(probabilities.sum() - 1) < 1e-6
         np.testing.assert_allclose(probabilities, softmax(logits - 1000))
+        for extreme in [[10000., 10001., 10002.], [-10000., -10001., -10002.],
+                        [1000., -1000., 0.], [-1e6, -1e6, -1e6]]:
+            with np.errstate(over="raise", invalid="raise"):
+                result = softmax(extreme)
+            assert np.isfinite(result).all()
+            assert abs(result.sum() - 1) < 1e-6
+            np.testing.assert_allclose(result, softmax(np.array(extreme) - np.max(extreme)))
+            print("extreme logits:", extreme, "probabilities:", result, "sum:", result.sum())
         """),
         ("md", r"""
         ## 3. MSE 최소화 = 정규 잡음 가정 아래의 MLE
@@ -361,10 +377,175 @@ def build_probability():
     ])
 
 
+def build_experiments():
+    """Build indexed experiment evidence including the requested divergence range."""
+    notebook("experiment_validation.ipynb", [
+        ("md", """
+        # Experiment validation · 재현 조건과 실험 결과
+
+        scripts/run_all.py를 먼저 실행한 뒤 이 노트북을 실행한다.
+        출력 파일명·해상도, Power Iteration 비교, h 변화 실험,
+        옵티마이저 조건, lr≥0.5 범위의 발산 사례를 확인한다.
+        """),
+        ("code", SETUP + """
+import json
+from IPython.display import Markdown, display, Image
+metrics = json.loads((ROOT / "outputs/metrics.json").read_text())
+
+def display_table(headers, rows):
+    \"""Display a small Markdown table without a data-analysis dependency.\"""
+    lines = ["| " + " | ".join(headers) + " |",
+             "|" + "|".join(["---"] * len(headers)) + "|"]
+    for row in rows:
+        lines.append("| " + " | ".join(str(v).replace(chr(10), " ") for v in row) + " |")
+    display(Markdown(chr(10).join(lines)))
+"""),
+        ("md", """
+        ## 1. PNG manifest and SVD image size
+
+        아래 크기는 PNG 헤더에서 읽은 실제 출력 해상도다. 원본 회색조 데이터
+        64×64와 비교 Figure의 픽셀 크기는 다르다. SVD의 세 복원 패널은
+        outputs/svd_comparison.png 한 파일에 함께 저장한다.
+        """),
+        ("code", """
+        display_table(["출력 경로", "해상도 (px)", "dpi"], [
+            [f["path"], f'{f["width_px"]}×{f["height_px"]}', f["dpi"]]
+            for f in metrics["figures"]])
+        image = np.load(ROOT / "data/grace_hopper_64.npy", allow_pickle=False)
+        assert image.shape == (64, 64)
+        display_table(["요청 k", "유효 k", "저장 Figure"], [
+            [k, min(k, 64), "outputs/svd_comparison.png"] for k in [10, 50, 100]])
+        """),
+        ("md", """
+        ## 2. Power Iteration vs eig
+
+        구현은 src/linear_algebra.py의 power_iteration, 아래 셀과
+        scripts/run_all.py의 main 함수는 비교 검증 전용이다.
+        np.linalg.eig는 직접 구현한 알고리즘 내부에서 사용하지 않는다.
+        """),
+        ("code", """
+        from src.linear_algebra import power_iteration
+        A = np.array([[4., 1.], [1., 3.]])
+        value, vector, iterations = power_iteration(A, seed=42)
+        # Reference eigensolver: verification only.
+        eigenvalues, _ = np.linalg.eig(A)
+        reference = float(np.real_if_close(eigenvalues[np.argmax(np.abs(eigenvalues))]))
+        relative_error = abs(value-reference)/abs(reference)
+        display_table(["Power Iteration", "np.linalg.eig", "상대오차", "반복 수"],
+                      [[value, reference, relative_error, iterations]])
+        assert relative_error <= 0.05
+        """),
+        ("md", r"""
+        ## 3. Central differences: h study
+
+        x², x=3의 정확한 도함수는 6이다. 이차함수에서는 중심차분의
+        절단오차가 정확한 산술에서 0이므로 h² 수렴을 관찰할 수 없다.
+        sin(0.7)의 미분 cos(0.7)을 추가해 O(h²) 구간을 확인한다.
+        h가 너무 작으면 뺄셈의 상쇄와 부동소수점 반올림이 오차를 키운다.
+        """),
+        ("code", """
+        from scripts.experiment_evidence import derivative_step_study
+        rows = derivative_step_study()
+        display_table(["h", "x² 수치미분", "x² 절대오차", "sin 절대오차"], [
+            [f'{r["h"]:.0e}', f'{r["square_derivative"]:.10f}',
+             f'{r["square_error"]:.3e}', f'{r["sine_error"]:.3e}'] for r in rows])
+        for i in (0, 1):
+            assert 95 < rows[i]["sine_error"]/rows[i+1]["sine_error"] < 105
+        display(Image(filename=str(ROOT / "outputs/derivative_step_study.png")))
+        """),
+        ("md", """
+        ## 4. Optimizer hyperparameters and fixed initial conditions
+
+        모든 실험의 초기점은 [5,5], 재현 시드는 42다.
+        Momentum은 v=beta*v+gradient 관례를 사용한다.
+        Adam의 beta1=0.9, beta2=0.999, eps=1e-8,
+        Newton의 damping=1과 Hessian=diag(2,20)을 명시한다.
+        확률적인 업데이트는 없지만 시드를 일관되게 고정한다.
+        """),
+        ("code", """
+        # Initial point=[5,5], seed=42, steps=100, lr=0.1 for mandatory GD.
+        from src.optimizer import VanillaGD, optimize, quadratic_gradient
+        np.random.seed(42)
+        initial, steps, lr = np.array([5., 5.]), 100, .1
+        gd = optimize(quadratic_gradient, initial, VanillaGD(lr), steps)
+        assert np.linalg.norm(gd[-1]) <= .1
+        # Ellipse comparisons use the SAME initial point, lr=0.09 or 0.01,
+        # respectively 200 or 300 steps; beta=0.9 for Momentum.
+        display_table(["실험", "함수", "방법", "초기점", "seed", "steps", "lr", "추가 파라미터"], [
+            [r["experiment"], r["function"], r["optimizer"], r["initial"],
+             r["seed"], r["steps"], r["lr"],
+             {k: r[k] for k in ["beta", "beta1", "beta2", "eps", "damping", "hessian"]
+              if r.get(k) is not None}]
+            for r in metrics["optimizer_experiments"]])
+        print("GD final point:", gd[-1], "radius:", np.linalg.norm(gd[-1]))
+        """),
+        ("md", r"""
+        ## 5. Divergence verification for lr >= 0.5
+
+        **lr≥0.5 구간에서 lr=1.1, 1.2, 1.5를 선택하여 발산을 검증한다.**
+        초기점=[5,5], seed=42, steps=30, 함수 f=x²+y², gradient=(2x,2y).
+
+        $$\theta_t=(1-2lr)^t\theta_0,\qquad
+        \|\theta_t\|=|1-2lr|^t\|\theta_0\|.$$
+
+        세 선택값의 증폭률은 각각 1.2, 1.4, 2.0이므로 모두 발산한다.
+        단순히 최종값이 크다는 관찰에 더해, 모든 단계의 거리 증가와
+        해석식 일치를 검증하여 발산 근거를 보강한다.
+        lr=0.5,0.75,1.0의 경계 실험도 아래 표에 함께 공개한다.
+        이 함수에서 "모든 lr≥0.5가 발산"은 성립하지 않는다.
+        """),
+        ("code", """
+        # Initial point=[5,5], seed=42, steps=30; tested lr=[.5,.75,1,1.1,1.2,1.5].
+        from scripts.experiment_evidence import divergence_study
+        evidence, paths = divergence_study(steps=30)
+        selected = evidence["demonstrated_divergent_rates"]
+        display_table(["lr", "갱신 계수", "관측/해석 결과", "거리 배율 (30회)", "매 단계 증가"], [
+            [r["lr"], f'{r["update_factor"]:.2f}', r["expected_behavior"],
+             f'{r["radius_growth_factor"]:.6g}', r["every_step_grows"]]
+            for r in evidence["runs"]])
+        for row in evidence["runs"]:
+            if row["lr"] in selected:
+                assert row["lr"] >= .5
+                assert abs(row["update_factor"]) > 1
+                assert row["closed_form_verified"] and row["every_step_grows"]
+                assert row["radius_growth_factor"] > 100
+        print("PASS: lr>=0.5 범위에서 선택한 1.1, 1.2, 1.5의 발산 확인")
+        display(Image(filename=str(ROOT / evidence["figure"])))
+        """),
+    ])
+
+
+def build_notebook_index():
+    """Write exact cell IDs and one-based positions for every notebook section."""
+    lines = ["# 노트북 셀 위치 안내", "",
+             "셀 순서는 1부터, cell-NNN ID는 0부터 센다. Code 번호는 실행 순서다.", ""]
+    for path in sorted((ROOT/"notebooks").glob("*.ipynb")):
+        nb = nbf.read(path, as_version=4)
+        lines.extend([f"## [{path.name}](../notebooks/{path.name})", "",
+                      "| 셀 순서 | 고정 셀 ID | 구분 | 내용 |", "|---|---|---|---|"])
+        code_number = 0
+        for index, cell in enumerate(nb.cells, start=1):
+            if cell.cell_type == "markdown":
+                title = " / ".join(
+                    line.lstrip("#").strip() for line in cell.source.splitlines()
+                    if line.startswith("#"))
+                kind = "Markdown"
+            else:
+                code_number += 1
+                title = next((line for line in cell.source.splitlines()
+                              if line.strip() and not line.startswith("#")), "")
+                kind = f"Code {code_number}"
+            lines.append(f'| {index} | {cell["id"]} | {kind} | {title.replace("|", "/")} |')
+        lines.append("")
+    (ROOT/"docs/NOTEBOOK_INDEX.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main():
-    """Build both required notebooks; execution is a separate explicit step."""
+    """Build the two required notebooks and the experiment evidence notebook."""
     build_backprop()
     build_probability()
+    build_experiments()
+    build_notebook_index()
 
 
 if __name__ == "__main__":

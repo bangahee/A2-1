@@ -141,5 +141,7 @@ def plot_convergence(paths, y_weight=1.0, title="Convergence comparison"):
         ax.semilogy(np.maximum(quadratic(path, y_weight), 1e-30), label=name)
     ax.set(xlabel="Iteration", ylabel="Objective (log scale)", title=title)
     ax.legend()
+    ax.text(.01, .02, "Display floor: 1e-30; exact zeros are shown at the floor.",
+            transform=ax.transAxes, fontsize=7, color="dimgray")
     ax.grid(alpha=0.25)
     return fig

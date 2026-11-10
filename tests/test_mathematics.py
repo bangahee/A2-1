@@ -47,6 +47,14 @@ class LinearAlgebraTests(unittest.TestCase):
         """A rank-one transform collapses a planar shape to zero area."""
         self.assertLess(area_report(np.diag([1., 0.]))["area_ratio"], 1e-12)
 
+    def test_area_near_zero_error_kind(self):
+        """Near-zero determinants use a labeled finite absolute error."""
+        for matrix in [np.zeros((2, 2)), np.diag([1., 1e-16])]:
+            result = area_report(matrix)
+            self.assertEqual(result["error_kind"], "absolute_near_zero_determinant")
+            self.assertTrue(np.isfinite(result["absolute_error"]))
+            self.assertLess(result["absolute_error"], 1e-12)
+
     def test_circle_area(self):
         """Polygon area approximates π independently of transformation ratios."""
         self.assertLess(abs(polygon_area(unit_circle()) - math.pi) / math.pi, .01)
@@ -112,6 +120,13 @@ class CalculusBackpropTests(unittest.TestCase):
         self.assertLess(abs(central_difference(lambda x: x*x, 3) - 6), 1e-4)
         self.assertLess(abs(central_difference(math.sin, .7) - math.cos(.7)), 1e-8)
 
+    def test_central_difference_sine_truncation_order(self):
+        """Reducing h tenfold reduces sine truncation error about a hundredfold."""
+        errors = [abs(central_difference(math.sin, .7, h)-math.cos(.7))
+                  for h in [.1, .01, .001]]
+        for a, b in zip(errors, errors[1:]):
+            self.assertTrue(95 < a/b < 105)
+
     def test_array_gradient(self):
         """Central differences preserve a matrix parameter's shape."""
         a = np.array([[.2, -.3], [1., 2.]])
@@ -170,6 +185,15 @@ class OptimizerTests(unittest.TestCase):
         self.assertLess(np.linalg.norm(alternating[-1]), .001)
         np.testing.assert_allclose(neutral[-1], [5, 5])
         self.assertGreater(np.linalg.norm(divergent[-1]), np.linalg.norm([5, 5]))
+
+    def test_selected_rates_ge_half_diverge(self):
+        """All selected lr≥0.5 examples match their growing analytic solutions."""
+        initial = np.array([5., 5.])
+        for lr in [1.1, 1.2, 1.5]:
+            path = optimize(quadratic_gradient, initial, VanillaGD(lr), 30)
+            expected = initial * (1-2*lr)**30
+            np.testing.assert_allclose(path[-1], expected, rtol=1e-12)
+            self.assertTrue(np.all(np.diff(np.linalg.norm(path, axis=1)) > 0))
 
     def test_momentum_zero_beta(self):
         """With beta zero the entire path must equal Vanilla GD."""
@@ -247,6 +271,16 @@ class ProbabilityTests(unittest.TestCase):
         """Each row in a batch has independent normalization."""
         p = softmax([[1., 2.], [100., 101.]])
         np.testing.assert_allclose(p.sum(axis=1), 1)
+
+    def test_extreme_negative_and_mixed_softmax(self):
+        """Large negative, mixed, and equal logits remain normalized and finite."""
+        cases = [[-10000., -10001., -10002.], [1000., -1000., 0.],
+                 [-1e6, -1e6, -1e6]]
+        with np.errstate(over="raise", invalid="raise"):
+            for logits in cases:
+                probability = softmax(logits)
+                self.assertTrue(np.isfinite(probability).all())
+                self.assertLess(abs(probability.sum()-1), 1e-6)
 
     def test_normal_pdf_center(self):
         """Check the Gaussian normalization coefficient analytically."""

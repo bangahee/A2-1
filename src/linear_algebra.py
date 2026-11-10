@@ -46,16 +46,26 @@ def polygon_area(points):
 
 
 def area_report(matrix, n=100):
-    """Compare transformed polygon area / original area with abs(det(A))."""
+    """Compare transformed polygon area / original area with abs(det(A)).
+
+    Above 1e-15, relative_error is |ratio-|det||/|det|. At or below that
+    threshold it records absolute ratio error instead, avoiding division by
+    zero/amplified roundoff for a collapsed or nearly collapsed polygon.
+    error_kind explicitly distinguishes the two error definitions.
+    """
     circle = unit_circle(n)
     before = polygon_area(circle)
     after = polygon_area(transform_points(circle, matrix))
     determinant = float(np.linalg.det(matrix))
     ratio = after / before
     expected = abs(determinant)
-    error = abs(ratio - expected) / expected if expected > 1e-15 else abs(ratio)
+    relative = expected > 1e-15
+    absolute_error = abs(ratio - expected)
+    error = absolute_error / expected if relative else absolute_error
     return dict(determinant=determinant, area_before=before, area_after=after,
-                area_ratio=ratio, relative_error=float(error))
+                area_ratio=ratio, relative_error=float(error),
+                absolute_error=float(absolute_error),
+                error_kind="relative" if relative else "absolute_near_zero_determinant")
 
 
 def plot_transformations():
@@ -68,11 +78,15 @@ def plot_transformations():
         report = area_report(matrix)
         ax.plot(*circle.T, label="Original", color="#2563eb")
         ax.plot(*moved.T, label="Transformed", color="#ef4444")
+        # Track one radius so rotation remains visible on a symmetric circle.
+        start, end = np.array([1., 0.]), matrix @ np.array([1., 0.])
+        ax.plot([0, start[0]], [0, start[1]], "--o", color="#2563eb", markersize=4)
+        ax.plot([0, end[0]], [0, end[1]], "--o", color="#ef4444", markersize=4)
         ax.set(title=f"{title}\n det={report['determinant']:.3f}, area ratio={report['area_ratio']:.3f}",
                xlabel="x", ylabel="y")
         ax.set_aspect("equal")
         ax.grid(alpha=0.25)
-        ax.legend(fontsize=8)
+        ax.legend(fontsize=8, loc="upper left")
     return fig
 
 
