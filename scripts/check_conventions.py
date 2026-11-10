@@ -7,7 +7,7 @@ SUBJECT = re.compile(
     r"^(feat|fix|docs|test|refactor|chore|ci|perf|style|build|revert)"
     r"(\([a-z0-9/-]+\))?!?: .+"
 )
-BRANCH = re.compile(r"^(main|codex/[a-z0-9]+(?:-[a-z0-9]+)*)$")
+BRANCH = re.compile(r"^(main|(?:feat|fix|docs|test|refactor|chore|ci|perf|style|build|revert)/[a-z0-9]+(?:-[a-z0-9]+)*)$")
 
 
 def main():

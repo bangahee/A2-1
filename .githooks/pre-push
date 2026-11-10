@@ -2,10 +2,11 @@
 while read -r local_ref local_sha remote_ref remote_sha; do
   case "$remote_ref" in
     refs/heads/main) ;;
-    refs/heads/codex/*)
-      name=${remote_ref#refs/heads/codex/}
+    refs/heads/feat/*|refs/heads/fix/*|refs/heads/docs/*|refs/heads/test/*|refs/heads/refactor/*|refs/heads/chore/*|refs/heads/ci/*|refs/heads/perf/*|refs/heads/style/*|refs/heads/build/*|refs/heads/revert/*)
+      name=${remote_ref#refs/heads/}
+      name=${name#*/}
       printf '%s\n' "$name" | LC_ALL=C grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$' || exit 1
       ;;
-    *) echo "Push branches named main or codex/<kebab-case>." >&2; exit 1 ;;
+    *) echo "Push branches named main or <type>/<kebab-case>." >&2; exit 1 ;;
   esac
 done
