@@ -546,6 +546,8 @@ def main():
     build_probability()
     build_experiments()
     build_notebook_index()
+    from scripts.export_derivations import export_derivations
+    export_derivations()
 
 
 if __name__ == "__main__":

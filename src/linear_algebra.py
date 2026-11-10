@@ -118,6 +118,40 @@ def power_iteration(matrix, tol=1e-10, max_iter=10000, seed=42, initial=None):
     raise RuntimeError("Power Iteration did not converge; inspect the spectral gap.")
 
 
+def compare_power_iteration(matrix, relative_tolerance=0.05, seed=42):
+    """Verify a real symmetric matrix's custom eigenpair against np.linalg.eig.
+
+    This comparison function is validation code only. power_iteration itself
+    uses repeated matrix multiplication, normalization, and Rayleigh quotients.
+    Eigenvector error minimizes over ±v because eigenvector signs are arbitrary.
+    """
+    a = np.asarray(matrix, float)
+    if (a.ndim != 2 or a.shape[0] != a.shape[1] or not np.allclose(a, a.T)
+            or not np.isfinite(relative_tolerance) or relative_tolerance < 0):
+        raise ValueError("Use a real symmetric matrix and nonnegative tolerance.")
+    value, vector, iterations = power_iteration(a, seed=seed)
+    # Reference eigensolver is called only AFTER the independent implementation.
+    reference_values, reference_vectors = np.linalg.eig(a)
+    index = int(np.argmax(np.abs(reference_values)))
+    reference = float(np.real_if_close(reference_values[index]))
+    reference_vector = np.asarray(np.real_if_close(reference_vectors[:, index]), float)
+    reference_vector /= np.linalg.norm(reference_vector)
+    error = abs(value-reference)/abs(reference) if reference != 0 else abs(value)
+    direction_error = float(min(np.linalg.norm(vector-reference_vector),
+                                np.linalg.norm(vector+reference_vector)))
+    return dict(matrix=a, value=value, vector=vector, iterations=iterations,
+                reference=reference, reference_vector=reference_vector,
+                relative_error=float(error), relative_tolerance=relative_tolerance,
+                passed=bool(error <= relative_tolerance),
+                eigenvector_sign_invariant_error=direction_error,
+                eigenvector_absolute_tolerance=1e-6,
+                eigenvector_passed=bool(direction_error <= 1e-6),
+                residual=float(np.linalg.norm(a @ vector-value*vector)),
+                verification_function="src/linear_algebra.py:compare_power_iteration",
+                verification_script="scripts/run_all.py",
+                reference_method="np.linalg.eig")
+
+
 def svd_compress(image, k):
     """Return truncated factors and effective rank, clamping k to min(shape).
 

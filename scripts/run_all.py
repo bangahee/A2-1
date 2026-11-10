@@ -15,7 +15,7 @@ import numpy as np
 
 from src.linear_algebra import (
     area_report, rotation, scaling, shear, plot_transformations,
-    power_iteration, plot_svd,
+    compare_power_iteration, plot_svd,
 )
 from src.calculus import central_difference, numerical_gradient, plot_gradient
 from src.backprop import fixed_example, forward, backward
@@ -28,6 +28,7 @@ from scripts.experiment_evidence import (
     derivative_step_study, plot_derivative_study, divergence_study,
     plot_divergence_evidence, optimizer_conditions,
 )
+from scripts.export_derivations import export_derivations
 
 FIGURE_MANIFEST = {}
 
@@ -73,6 +74,19 @@ def main():
     results = {"seed": 42, "environment": {
         "python": platform.python_version(), "numpy": np.__version__,
         "matplotlib": matplotlib.__version__}}
+    results["reproducibility"] = dict(
+        script="scripts/run_all.py", seed=42,
+        command="python -m scripts.run_all",
+        unit_tests="tests/test_mathematics.py")
+    results["documents"] = export_derivations()
+    results["derivations"] = dict(
+        markdown="DERIVATIONS.md",
+        backprop_notebook="notebooks/backprop_derivation.ipynb",
+        probability_notebook="notebooks/probability_loss.ipynb",
+        gaussian_negative_log_likelihood="C + sum((y_i-f_theta(x_i))**2)/(2*sigma**2)",
+        gaussian_assumptions="Independent observations; fixed common variance sigma**2 > 0",
+        bernoulli_negative_log_likelihood="-sum(y_i*log(p_i)+(1-y_i)*log(1-p_i))",
+        categorical_negative_log_likelihood="-sum_i sum_k y_ik*log(q_ik)")
     checks = {}
 
     save_figure(plot_transformations(), "matrix_transformations.png")
@@ -89,16 +103,11 @@ def main():
         for name in ("zero_matrix", "near_singular"))
 
     matrix = np.array([[4., 1.], [1., 3.]])
-    value, vector, iterations = power_iteration(matrix)
-    # eig is used ONLY as the reference verification, never by the algorithm.
-    reference_values, _ = np.linalg.eig(matrix)
-    reference = float(np.real_if_close(reference_values[np.argmax(np.abs(reference_values))]))
-    eigen_error = abs(value - reference) / abs(reference)
-    results["power_iteration"] = dict(value=value, vector=vector, iterations=iterations,
-                                      reference=reference, relative_error=eigen_error,
-                                      verification_script="scripts/run_all.py",
-                                      residual=float(np.linalg.norm(matrix @ vector - value * vector)))
-    checks["eigenvalue_within_5_percent"] = eigen_error <= .05
+    # Validation-only helper calls np.linalg.eig after the custom iteration.
+    comparison = compare_power_iteration(matrix, relative_tolerance=.05)
+    results["power_iteration"] = comparison
+    checks["eigenvalue_within_5_percent"] = comparison["passed"]
+    checks["eigenvector_direction_matches_eig"] = comparison["eigenvector_passed"]
 
     image = np.load(ROOT / "data/grace_hopper_64.npy", allow_pickle=False)
     figure, svd = plot_svd(image)
@@ -116,7 +125,10 @@ def main():
     checks["svd_error_nonincreasing"] = all(svd[i]["mse"] >= svd[i+1]["mse"] for i in range(2))
 
     derivative = central_difference(lambda x: x * x, 3)
-    results["derivative"] = dict(numerical=derivative, analytical=6.0, error=abs(derivative - 6))
+    results["derivative"] = dict(numerical=derivative, analytical=6.0, error=abs(derivative - 6),
+                                 absolute_tolerance=1e-4,
+                                 passed=bool(abs(derivative-6) <= 1e-4),
+                                 function="x**2", x=3.0, h=1e-5)
     checks["derivative_error_within_1e_4"] = abs(derivative - 6) <= 1e-4
     study = derivative_step_study()
     results["derivative_step_study"] = study
@@ -223,6 +235,9 @@ def main():
     results["information_theory"] = dict(entropy=entropy(p), cross_entropy=cross_entropy(p, q),
                                         kl_divergence=kl_divergence(p, q))
     checks["cross_entropy_equals_entropy_plus_kl"] = abs(cross_entropy(p, q) - entropy(p) - kl_divergence(p, q)) < 1e-12
+    checks["derivation_documents_present"] = all(
+        (ROOT/document["path"]).is_file() for document in results["documents"]
+    ) and (ROOT/"DERIVATIONS.md").is_file()
     results["visualization_parameters"] = dict(
         circle_samples=100, gradient_grid_shape=[5, 5], gradient_scale=7,
         gradient_scale_units="xy", normal_pdf_samples=600,

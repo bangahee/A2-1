@@ -5,6 +5,7 @@ import math
 import os
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".matplotlib"))
@@ -14,7 +15,7 @@ import numpy as np
 
 from src.linear_algebra import (
     rotation, scaling, shear, unit_circle, transform_points,
-    polygon_area, area_report, power_iteration, svd_compress, svd_restore,
+    polygon_area, area_report, power_iteration, compare_power_iteration, svd_compress, svd_restore,
 )
 from src.calculus import central_difference, numerical_gradient
 from src.backprop import fixed_example, forward, backward
@@ -65,6 +66,25 @@ class LinearAlgebraTests(unittest.TestCase):
         value, vector, _ = power_iteration(a)
         self.assertAlmostEqual(value, (7 + math.sqrt(5))/2, places=9)
         np.testing.assert_allclose(a @ vector, value * vector, atol=1e-8)
+
+    def test_reference_eigenpair_comparison(self):
+        """The separate eig comparison includes both value and direction errors."""
+        report = compare_power_iteration([[4., 1.], [1., 3.]])
+        self.assertTrue(report["passed"] and report["eigenvector_passed"])
+        self.assertAlmostEqual(report["reference"], (7+math.sqrt(5))/2, places=9)
+        self.assertLess(report["eigenvector_sign_invariant_error"], 1e-8)
+
+    def test_reference_negative_eigenvector_sign(self):
+        """Opposite vector signs still represent the same dominant eigendirection."""
+        report = compare_power_iteration(np.diag([-5., 2.]))
+        self.assertAlmostEqual(report["reference"], -5)
+        self.assertTrue(report["eigenvector_passed"])
+
+    def test_power_does_not_call_eig(self):
+        """The actual iterative algorithm works when the reference solver is disabled."""
+        with patch("numpy.linalg.eig", side_effect=AssertionError("reference solver used")):
+            value, _, _ = power_iteration([[4., 1.], [1., 3.]])
+        self.assertAlmostEqual(value, (7+math.sqrt(5))/2, places=9)
 
     def test_power_negative_dominant(self):
         """Sign-alternating vectors still converge by eigenpair residual."""
@@ -330,7 +350,12 @@ class RepositoryConstraintTests(unittest.TestCase):
                         self.assertIn(alias.name.split(".")[0], {"numpy", "matplotlib"})
                 if isinstance(node, ast.ImportFrom) and node.level == 0:
                     self.assertIn(node.module.split(".")[0], {"numpy", "matplotlib"})
-            self.assertNotIn("np.linalg.eig(", path.read_text())
+            for function in (n for n in tree.body if isinstance(n, ast.FunctionDef)):
+                eig_calls = [n for n in ast.walk(function) if isinstance(n, ast.Call)
+                             and ast.unparse(n.func) == "np.linalg.eig"]
+                if eig_calls:
+                    self.assertEqual(path.name, "linear_algebra.py")
+                    self.assertEqual(function.name, "compare_power_iteration")
 
     def test_image_constraint(self):
         """The committed dataset satisfies grayscale and maximum size requirements."""

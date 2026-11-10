@@ -19,7 +19,7 @@ def main():
     """Fail if a required file, numerical check, or executed notebook is missing."""
     required = [
         "src/linear_algebra.py", "src/calculus.py", "src/optimizer.py",
-        "README.md", "requirements.txt", "CONTRIBUTING.md",
+        "README.md", "requirements.txt", "CONTRIBUTING.md", "DERIVATIONS.md",
         "docs/REQUIREMENTS_CHECKLIST.md", "docs/MATHEMATICAL_DECISIONS.md",
         "docs/OUTPUT_MANIFEST.md", "docs/NOTEBOOK_INDEX.md",
         "outputs/metrics.json", "data/grace_hopper_64.npy",
@@ -29,8 +29,16 @@ def main():
         assert path.is_file() and path.stat().st_size > 0, filename
     metrics = json.loads((ROOT/"outputs/metrics.json").read_text())
     checks = metrics["acceptance_checks"]
-    assert len(checks) >= 20 and all(v is True for v in checks.values())
+    assert len(checks) >= 22 and all(v is True for v in checks.values())
     assert checks["lr_ge_0_5_divergence_examples_verified"] is True
+    assert metrics["power_iteration"]["reference_method"] == "np.linalg.eig"
+    assert metrics["power_iteration"]["passed"] and metrics["power_iteration"]["eigenvector_passed"]
+    assert {d["path"] for d in metrics["documents"]} == {
+        "notebooks/backprop_derivation.ipynb", "notebooks/probability_loss.ipynb"}
+    proof = (ROOT/"DERIVATIONS.md").read_text()
+    for topic in ["순전파 수식과 손계산", "연쇄 법칙", "MSE 최소화",
+                  "Binary Cross-Entropy", "Categorical Cross-Entropy"]:
+        assert topic in proof, topic
     manifest = {row["path"]: row for row in metrics["figures"]}
     for filename in FIGURES:
         path = "outputs/" + filename

@@ -8,6 +8,22 @@
 
 **제출 URL: https://github.com/bangahee/A2-1**
 
+## 수식과 실행 결과
+
+- [수식 유도 전체 보기 — DERIVATIONS.md](DERIVATIONS.md):
+  순전파·역전파 손계산, shape, Gaussian–MSE,
+  Bernoulli–BCE, categorical–Cross-Entropy 유도.
+- [역전파 실행 노트북](notebooks/backprop_derivation.ipynb)
+- [확률과 손실 함수 실행 노트북](notebooks/probability_loss.ipynb)
+- [고유값·고유벡터 비교 함수](src/linear_algebra.py):
+  compare_power_iteration에서 직접 구현한 결과와 np.linalg.eig를 비교한다.
+- [수치 결과와 문서 경로](outputs/metrics.json):
+  documents와 derivations에 원본 파일을 연결하고 power_iteration에
+  양쪽 고유값·고유벡터, 상대오차, 부호를 고려한 벡터 오차를 저장한다.
+
+DERIVATIONS.md는 두 노트북의 수식과 손계산 비교표를 텍스트로도 제공한다.
+계산 구현과 참조 비교는 분리되어 있으며 power_iteration은 eig를 호출하지 않는다.
+
 ## 학습률에 따른 발산 실험
 
 **lr≥0.5 구간에서 선택한 lr=1.1, 1.2, 1.5의 발산을 확인했다.**
@@ -68,10 +84,10 @@ python -m scripts.check_conventions
 
 | 명령 | 기대 결과 |
 |---|---|
-| unittest | Ran 43 tests / OK |
-| run_all | All 20 acceptance checks passed |
+| unittest | Ran 46 tests / OK |
+| run_all | All 22 acceptance checks passed |
 | execute_notebooks | backprop_derivation 4개, experiment_validation 6개, probability_loss 6개 code cell PASS |
-| verify_submission | 14 PNGs, 20 acceptance checks, 3 executed notebooks |
+| verify_submission | 14 PNGs, 22 acceptance checks, 3 executed notebooks |
 | check_conventions | 모든 실제 커밋과 브랜치 규칙 PASS |
 
 검증 실패 시 명령은 0이 아닌 종료 코드를 반환한다. 체크인한 이미지
@@ -172,7 +188,8 @@ Adam은 좌표별 보폭을 조절하며 사용한 lr=0.1을 그래프에 명시
 | MSE–MLE 유도 | probability_loss.ipynb / cell-006 |
 | Bernoulli·categorical CE–MLE 유도 | probability_loss.ipynb / cell-008 |
 
-고유값 비교는 scripts/run_all.py의 main 함수에서도 실행한다.
+고유값 비교는 src/linear_algebra.py의 compare_power_iteration에서 수행하며,
+scripts/run_all.py의 main 함수가 이 검증 함수를 실행한다.
 np.linalg.eig는 비교 기준으로만 호출하며 Power Iteration 구현에는 사용하지 않는다.
 
 ### 손실 함수와 최대우도
@@ -250,18 +267,20 @@ A2-1/
 ├── data/                     # 64×64 회색조 NPY 및 출처
 ├── outputs/                  # PNG 14개, metrics.json
 ├── scripts/                  # 생성·실행·검증
-├── tests/test_mathematics.py  # 독립 기준과 경계 사례 43개
+├── tests/test_mathematics.py  # 독립 기준과 경계 사례 46개
 ├── docs/                     # 원문, 수학적 결정, 점검표
 ├── .github/workflows/        # Python 3.12/3.14 CI
 ├── .githooks/                # 커밋 메시지와 push 브랜치 이름 검사
 ├── CONTRIBUTING.md
+├── DERIVATIONS.md             # 노트북의 수식과 손계산을 Markdown으로 제공
 ├── requirements.txt
 └── requirements-dev.txt
 ~~~
 
 ## 7. 브랜치와 커밋
 
-제출 브랜치는 main이며 feat/a2-1-implementation과 fix/experiment-evidence에
+제출 브랜치는 main이며 feat/a2-1-implementation, fix/experiment-evidence,
+fix/derivation-access에
 구현·실험 보완 이력을 보존한다.
 이후 변경은 feat/, fix/, docs/ 등 작업 유형으로 시작하는 브랜치를 사용한다.
 커밋은 feat: 설명, fix: 설명, docs: 설명 같은 형식을 유지한다.

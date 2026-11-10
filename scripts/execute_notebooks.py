@@ -6,6 +6,7 @@ import sys
 import nbformat
 from nbclient import NotebookClient
 from jupyter_client import KernelManager
+from scripts.export_derivations import export_derivations
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -33,6 +34,7 @@ def main():
         nbformat.write(notebook, path)
         count = sum(c.cell_type == "code" for c in notebook.cells)
         print(f"PASS {path.name}: {count} code cells executed without errors")
+    export_derivations()
 
 
 if __name__ == "__main__":

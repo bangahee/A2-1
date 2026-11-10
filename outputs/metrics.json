@@ -5,6 +5,48 @@
     "numpy": "2.5.3",
     "matplotlib": "3.11.2"
   },
+  "reproducibility": {
+    "script": "scripts/run_all.py",
+    "seed": 42,
+    "command": "python -m scripts.run_all",
+    "unit_tests": "tests/test_mathematics.py"
+  },
+  "documents": [
+    {
+      "path": "notebooks/backprop_derivation.ipynb",
+      "format": "ipynb",
+      "topics": [
+        "forward equations",
+        "chain rule",
+        "hand calculations",
+        "tensor shapes"
+      ],
+      "markdown_companion": "DERIVATIONS.md",
+      "code_cells": 4,
+      "executed_code_cells": 4
+    },
+    {
+      "path": "notebooks/probability_loss.ipynb",
+      "format": "ipynb",
+      "topics": [
+        "Gaussian MLE to MSE",
+        "Bernoulli MLE to BCE",
+        "categorical MLE to cross-entropy"
+      ],
+      "markdown_companion": "DERIVATIONS.md",
+      "code_cells": 6,
+      "executed_code_cells": 6
+    }
+  ],
+  "derivations": {
+    "markdown": "DERIVATIONS.md",
+    "backprop_notebook": "notebooks/backprop_derivation.ipynb",
+    "probability_notebook": "notebooks/probability_loss.ipynb",
+    "gaussian_negative_log_likelihood": "C + sum((y_i-f_theta(x_i))**2)/(2*sigma**2)",
+    "gaussian_assumptions": "Independent observations; fixed common variance sigma**2 > 0",
+    "bernoulli_negative_log_likelihood": "-sum(y_i*log(p_i)+(1-y_i)*log(1-p_i))",
+    "categorical_negative_log_likelihood": "-sum_i sum_k y_ik*log(q_ik)"
+  },
   "areas": {
     "rotation": {
       "determinant": 1.0,
@@ -62,6 +104,16 @@
     }
   },
   "power_iteration": {
+    "matrix": [
+      [
+        4.0,
+        1.0
+      ],
+      [
+        1.0,
+        3.0
+      ]
+    ],
     "value": 4.618033988749895,
     "vector": [
       -0.8506508082668591,
@@ -69,9 +121,20 @@
     ],
     "iterations": 36,
     "reference": 4.618033988749895,
+    "reference_vector": [
+      0.85065080835204,
+      0.5257311121191336
+    ],
     "relative_error": 0.0,
+    "relative_tolerance": 0.05,
+    "passed": true,
+    "eigenvector_sign_invariant_error": 1.620236269594291e-10,
+    "eigenvector_absolute_tolerance": 1e-06,
+    "eigenvector_passed": true,
+    "residual": 3.6229590221024135e-10,
+    "verification_function": "src/linear_algebra.py:compare_power_iteration",
     "verification_script": "scripts/run_all.py",
-    "residual": 3.6229590221024135e-10
+    "reference_method": "np.linalg.eig"
   },
   "svd": [
     {
@@ -123,7 +186,12 @@
   "derivative": {
     "numerical": 6.000000000039306,
     "analytical": 6.0,
-    "error": 3.930633596382904e-11
+    "error": 3.930633596382904e-11,
+    "absolute_tolerance": 0.0001,
+    "passed": true,
+    "function": "x**2",
+    "x": 3.0,
+    "h": 1e-05
   },
   "derivative_step_study": [
     {
@@ -747,6 +815,7 @@
     "determinant_area_within_1_percent": true,
     "singular_area_absolute_error_stable": true,
     "eigenvalue_within_5_percent": true,
+    "eigenvector_direction_matches_eig": true,
     "svd_requested_ranks_present": true,
     "svd_rank_cap_and_full_reconstruction": true,
     "svd_error_nonincreasing": true,
@@ -763,6 +832,7 @@
     "newton_exact_quadratic_one_step": true,
     "softmax_sum_within_1e_6": true,
     "softmax_extreme_cases_stable": true,
-    "cross_entropy_equals_entropy_plus_kl": true
+    "cross_entropy_equals_entropy_plus_kl": true,
+    "derivation_documents_present": true
   }
 }

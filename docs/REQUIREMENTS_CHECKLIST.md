@@ -11,7 +11,7 @@
 | Sh(k)와 기울어진 형태 | 같은 모듈/그림 | k=0.8 |
 | 행렬식과 면적비 | area_report, metrics.areas | 상대오차 ≤1%, 음의 det는 절댓값 |
 | 직접 Power Iteration | power_iteration | 행렬-벡터 곱, 정규화, Rayleigh quotient |
-| eig 검증 전용 사용 | scripts/run_all.py | 고유값 상대오차 ≤5% |
+| eig 검증 전용 사용 | src/linear_algebra.py:compare_power_iteration, scripts/run_all.py | 고유값 상대오차 ≤5%, 고유벡터 부호를 고려한 비교 |
 | SVD k=10,50,100 | outputs/svd_comparison.png | 요청값 모두 표시, 유효 k=10,50,64 |
 | 64×64 이하 회색조 이미지 | data/grace_hopper_64.npy, data/README.md | 공개 예제 출처와 전처리 명시 |
 | 중심차분 f=x², x=3 | src/calculus.py, metrics.derivative | 절대오차 ≤1e-4 |
@@ -33,8 +33,8 @@
 | Normal PDF 2종 | notebooks/probability_loss.ipynb, outputs/probability_distributions.png | N(0,1),N(2,0.5), 분산 관례 |
 | Bernoulli PMF 2종 | 같은 노트북/그림 | p=0.3,0.7 |
 | 직접 softmax와 합 검증 | src/probability.py, 같은 노트북 | 합과 1의 차이 ≤1e-6, 큰 logit 안정성 |
-| MSE–MLE 유도 | 같은 노트북 | Gaussian likelihood→log→상수제거→MSE |
-| CE–MLE 유도 | 같은 노트북 | Bernoulli와 categorical 각각 유도 |
+| MSE–MLE 유도 | probability_loss.ipynb, DERIVATIONS.md | Gaussian likelihood→log→상수제거→MSE |
+| CE–MLE 유도 | probability_loss.ipynb, DERIVATIONS.md | Bernoulli와 categorical 각각 유도 |
 | README 개요/실행/주요결과 | README.md | 처음부터 실행할 명령과 기대 출력 |
 | NumPy 구현, 시각화 라이브러리 제한 | src/*.py, tests/test_mathematics.py | 자동미분 및 sklearn 없음 |
 | 시드 42 | run_all.py와 두 노트북 | 결정적인 초기값/실험 |
@@ -49,8 +49,8 @@
 
 ## 실행으로 확인하는 제출 상태
 
-1. python -m unittest discover -s tests -v → 43 tests, OK.
-2. python -m scripts.run_all → 20개 수치 허용 기준 PASS.
+1. python -m unittest discover -s tests -v → 46 tests, OK.
+2. python -m scripts.run_all → 22개 수치 허용 기준 PASS.
 3. python -m scripts.execute_notebooks → 세 노트북의 총 16개 code cell PASS.
 4. python -m scripts.verify_submission → 14개 PNG와 실행본 구조 PASS.
 5. python -m scripts.check_conventions → 커밋 형식과 브랜치 이름 PASS.
