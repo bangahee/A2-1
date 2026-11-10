@@ -1,0 +1,11 @@
+#!/bin/sh
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main) ;;
+    refs/heads/codex/*)
+      name=${remote_ref#refs/heads/codex/}
+      printf '%s\n' "$name" | LC_ALL=C grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$' || exit 1
+      ;;
+    *) echo "Push branches named main or codex/<kebab-case>." >&2; exit 1 ;;
+  esac
+done

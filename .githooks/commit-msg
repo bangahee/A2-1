@@ -1,0 +1,6 @@
+#!/bin/sh
+subject=$(head -n 1 "$1")
+if ! printf '%s\n' "$subject" | LC_ALL=C grep -Eq '^(feat|fix|docs|test|refactor|chore|ci|perf|style|build|revert)(\([a-z0-9/-]+\))?!?: .+'; then
+  echo "Use type: description (see CONTRIBUTING.md)." >&2
+  exit 1
+fi
