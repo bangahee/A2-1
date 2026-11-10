@@ -537,7 +537,7 @@ def build_notebook_index():
                 kind = f"Code {code_number}"
             lines.append(f'| {index} | {cell["id"]} | {kind} | {title.replace("|", "/")} |')
         lines.append("")
-    (ROOT/"docs/NOTEBOOK_INDEX.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (ROOT/"docs/NOTEBOOK_INDEX.md").write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
 
 
 def main():

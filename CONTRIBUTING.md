@@ -7,7 +7,7 @@ These rules follow the existing A1-1 commit style and apply throughout A2-1.
 - Commit format: `type: short description`, optionally `type(scope): description`.
 - Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `ci`, `perf`, `style`, `build`, `revert`.
 - Keep each commit focused. Never commit environments, credentials, caches or unrelated work.
-- Validate code, execute both notebooks, and regenerate evidence before publishing.
+- Validate code, execute all three notebooks, and regenerate evidence before publishing.
 - Fast-forward main after successful verification; preserve the development branch.
 - Never force-push or rewrite shared history.
 

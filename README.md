@@ -8,6 +8,31 @@
 
 **제출 URL: https://github.com/bangahee/A2-1**
 
+## 학습률에 따른 발산 실험
+
+**lr≥0.5 구간에서 선택한 lr=1.1, 1.2, 1.5의 발산을 확인했다.**
+함수는 f(x,y)=x²+y², 초기점은 (5,5), 시드는 42, 반복 수는 30이다.
+세 경우 모두 매 단계 원점까지의 거리와 목적함수가 증가하며,
+각 좌표는 해석식 $\theta_t=(1-2lr)^t\theta_0$와 일치한다.
+
+| lr | 매 단계 거리 증폭률 | 30회 후 거리 / 초기 거리 | 결과 |
+|---|---|---|---|
+| 1.1 | 1.2 | 약 237.376배 | 발산 |
+| 1.2 | 1.4 | 약 24,201.432배 | 발산 |
+| 1.5 | 2.0 | 1,073,741,824배 | 발산 |
+
+![학습률에 따른 발산](outputs/lr_ge_0_5_divergence.png)
+
+같은 조건의 lr=0.5는 한 번에 원점에 도달하고, 0.75는 수렴,
+1.0은 크기가 유지되는 진동을 보인다. 따라서 위 결과는 선택한 세
+학습률의 발산을 뜻하며, lr≥0.5 전 구간에 대한 주장은 아니다.
+
+- 실행: python -m scripts.run_all
+- 구현: scripts/experiment_evidence.py의 divergence_study
+- 노트북: [experiment_validation.ipynb](notebooks/experiment_validation.ipynb)의
+  「5. Divergence verification for lr >= 0.5」, cell-010~cell-011
+- 수치 기록: outputs/metrics.json의 learning_rate_divergence
+
 ## 1. 설치
 
 Python **3.12 이상**을 사용한다. 고정 의존성 조합이 Python 3.12 이상을
@@ -43,10 +68,10 @@ python -m scripts.check_conventions
 
 | 명령 | 기대 결과 |
 |---|---|
-| unittest | Ran 39 tests / OK |
-| run_all | All 16 acceptance checks passed |
-| execute_notebooks | backprop_derivation 4개, probability_loss 6개 code cell PASS |
-| verify_submission | 12 PNGs, 16 acceptance checks, 2 executed notebooks |
+| unittest | Ran 43 tests / OK |
+| run_all | All 20 acceptance checks passed |
+| execute_notebooks | backprop_derivation 4개, experiment_validation 6개, probability_loss 6개 code cell PASS |
+| verify_submission | 14 PNGs, 20 acceptance checks, 3 executed notebooks |
 | check_conventions | 모든 실제 커밋과 브랜치 규칙 PASS |
 
 검증 실패 시 명령은 0이 아닌 종료 코드를 반환한다. 체크인한 이미지
@@ -58,7 +83,7 @@ macOS에서는 다음 명령으로 결과 그림을 연다.
 open outputs
 ~~~
 
-두 ipynb는 GitHub의 notebooks 폴더 또는 VS Code의 노트북 편집기에서 읽는다.
+세 ipynb는 GitHub의 notebooks 폴더 또는 VS Code의 노트북 편집기에서 읽는다.
 실행 결과가 저장되어 웹에서도 수식, 코드, 출력을 확인할 수 있다.
 직접 셀을 실행하려면 편집기에서 이 저장소의 .venv 커널을 선택한다.
 
@@ -117,7 +142,7 @@ Momentum은 이전 기울기를 누적하여 완만한 방향의 이동을 가�
 반경에 진입한다. 최초 진입 속도와 최종 오차는 다른 지표다.
 Adam은 좌표별 보폭을 조절하며 사용한 lr=0.1을 그래프에 명시했다.
 
-## 4. 수식 유도 노트북
+## 4. 수식 유도와 재현 실험
 
 - [backprop_derivation.ipynb](notebooks/backprop_derivation.ipynb):
   고정 2→2→1 네트워크, 순전파 손계산, 연쇄 법칙의 모든 필수 미분,
@@ -125,16 +150,87 @@ Adam은 좌표별 보폭을 조절하며 사용한 lr=0.1을 그래프에 명시
 - [probability_loss.ipynb](notebooks/probability_loss.ipynb):
   정규/Bernoulli 분포, 안정적인 softmax, Gaussian–MSE,
   Bernoulli–BCE, categorical–CE의 MLE 유도, Entropy/KL/CE.
+- [experiment_validation.ipynb](notebooks/experiment_validation.ipynb):
+  출력 해상도, 고유값 비교, 중심차분 h 실험, 전체 하이퍼파라미터,
+  학습률에 따른 발산 사례.
+
+### 수식과 계산의 위치
+
+셀 ID는 고정되어 있다. 1부터 세는 셀 순서와 코드 실행 번호는
+[NOTEBOOK_INDEX.md](docs/NOTEBOOK_INDEX.md)에 정리했다.
+
+| 내용 | 노트북 / 고정 셀 ID |
+|---|---|
+| 순전파 손계산 | backprop_derivation.ipynb / cell-002 (3번째 셀) |
+| 역전파 손계산과 shape | backprop_derivation.ipynb / cell-003 (4번째 셀) |
+| 손계산·NumPy 나란히 비교표 | backprop_derivation.ipynb / cell-006 (7번째 셀, Code 3) |
+| Power Iteration·np.linalg.eig 비교 | experiment_validation.ipynb / cell-005 (6번째 셀, Code 3) |
+| h별 오차표와 그래프 | experiment_validation.ipynb / cell-007 |
+| 초기점·seed·steps·lr·beta 요약 | experiment_validation.ipynb / cell-009 |
+| lr≥0.5 구간의 발산 사례 | experiment_validation.ipynb / cell-011 |
+| 큰 양수·음수·혼합 logits | probability_loss.ipynb / cell-005 |
+| MSE–MLE 유도 | probability_loss.ipynb / cell-006 |
+| Bernoulli·categorical CE–MLE 유도 | probability_loss.ipynb / cell-008 |
+
+고유값 비교는 scripts/run_all.py의 main 함수에서도 실행한다.
+np.linalg.eig는 비교 기준으로만 호출하며 Power Iteration 구현에는 사용하지 않는다.
+
+### 손실 함수와 최대우도
+
+조건부 독립 표본과 고정된 공통 분산 σ²의 정규 잡음 아래에서
+
+$$-\log\mathcal L(\theta)=C+\frac{1}{2\sigma^2}
+\sum_i(y_i-f_\theta(x_i))^2.$$
+
+C는 θ와 무관하므로 최대우도 추정과 MSE 최소화의 최적점이 같다.
+Bernoulli에서는 음의 log likelihood가
+
+$$-\sum_i[y_i\log p_i+(1-y_i)\log(1-p_i)]$$
+
+이고, categorical에서는 $-\sum_{i,k}y_{ik}\log q_{ik}$다.
+각각 표본 수로 나누면 평균 BCE와 categorical Cross-Entropy가 된다.
+
+### 수치 오차와 시각화 조건
+
+- 중심차분의 h를 1e-1부터 1e-12까지 바꾼다. x²는 정확한 산술에서
+  중심차분 절단오차가 0이므로 sin(0.7)을 추가해 O(h²) 구간을 확인한다.
+  너무 작은 h에서 커지는 반올림 오차도 표와 그래프로 기록한다.
+- |det(A)|>1e-15에서는 면적비의 상대오차를 계산한다. 이보다 작으면
+  절대오차를 사용하고 error_kind에 구분을 적어 0으로 나누지 않는다.
+  영행렬과 diag(1,1e-16)의 결과도 metrics.areas에 포함한다.
+- gradient는 5×5 점에서 그린다. angles/scale_units="xy"는 데이터 좌표에서
+  방향과 축척을 유지하고 scale=7은 겹침을 줄이도록 모든 화살표를 균일하게 줄인다.
+- 정규 PDF는 [-4,5]에서 600점을 사용한다. Bernoulli 막대 폭은 0.32,
+  두 분포의 위치 보정은 -0.17/+0.17이다.
+- 로그 그래프의 1e-30과 1e-15는 표시 하한이다. 실제로 0이 된 결과도
+  로그 축에서 보이도록 이 하한에 표시한다.
+
+### 출력 파일과 크기
+
+모든 그림은 150 dpi로 저장한다. 데이터 이미지의 64×64 크기와
+여러 패널을 포함하는 Figure의 해상도는 구분한다.
+
+| 파일 | 실제 Figure 해상도 |
+|---|---|
+| outputs/matrix_transformations.png | 2100×675 px |
+| outputs/svd_comparison.png | 2100×600 px |
+| outputs/lr_ge_0_5_divergence.png | 1800×720 px |
+| outputs/derivative_step_study.png | 1200×675 px |
+
+전체 14개 PNG의 파일명·크기는 [OUTPUT_MANIFEST.md](docs/OUTPUT_MANIFEST.md)와
+metrics.figures에 기록한다. SVD의 k=10,50,100 복원은 한 비교 Figure의
+두 번째·세 번째·네 번째 패널에 저장한다. metrics.svd에는 해당 경로와
+0부터 세는 패널 번호를 기록한다.
 
 ## 5. 원문의 모순과 해석
 
 1. y_true가 빠져 있으므로 참고 예제와 동일하게 1로 정했다.
 2. f=x²+y²에서 lr=0.5는 한 번에 원점에 도달한다. 실제 발산은 lr>1이다.
-   0.1, 0.5, 0.75, 1.0, 1.1을 모두 실험했다.
+   0.1, 0.5, 0.75, 1.0, 1.1, 1.2, 1.5를 실험했다.
 3. 64×64에서 k=100개의 특이값을 사용할 수 없어 유효 k=64로 명시했다.
 4. 숨김층 두 번째 logit의 올바른 기울기는 -0.0517이다.
 5. N(2,0.5)의 두 번째 인수는 분산으로 해석했다.
-6. Momentum의 장점은 설정과 평가 지표에 의존한다.
+6. Momentum의 장점은 설정과 측정 지표에 의존한다.
 
 근거는 [MATHEMATICAL_DECISIONS.md](docs/MATHEMATICAL_DECISIONS.md),
 모든 요구사항의 파일/그림/수치 기준은
@@ -150,11 +246,11 @@ A2-1/
 │   ├── backprop.py           # 순전파 및 명시적 역전파
 │   ├── optimizer.py          # GD, Momentum, Adam, Newton, 경로 시각화
 │   └── probability.py        # 분포, softmax, 정보 이론
-├── notebooks/                # 필수 노트북 2개, 실행 출력 포함
+├── notebooks/                # 수식 유도 2개와 재현 실험 1개, 실행 출력 포함
 ├── data/                     # 64×64 회색조 NPY 및 출처
-├── outputs/                  # PNG 12개, metrics.json
+├── outputs/                  # PNG 14개, metrics.json
 ├── scripts/                  # 생성·실행·검증
-├── tests/test_mathematics.py  # 독립 기준과 경계 사례 39개
+├── tests/test_mathematics.py  # 독립 기준과 경계 사례 43개
 ├── docs/                     # 원문, 수학적 결정, 점검표
 ├── .github/workflows/        # Python 3.12/3.14 CI
 ├── .githooks/                # 커밋 메시지와 push 브랜치 이름 검사
@@ -165,7 +261,8 @@ A2-1/
 
 ## 7. 브랜치와 커밋
 
-제출 브랜치는 main, 개발 브랜치는 feat/a2-1-implementation이다.
+제출 브랜치는 main이며 feat/a2-1-implementation과 fix/experiment-evidence에
+구현·실험 보완 이력을 보존한다.
 이후 변경은 feat/, fix/, docs/ 등 작업 유형으로 시작하는 브랜치를 사용한다.
 커밋은 feat: 설명, fix: 설명, docs: 설명 같은 형식을 유지한다.
 규칙과 hook 설정은 [CONTRIBUTING.md](CONTRIBUTING.md)를 따른다.
