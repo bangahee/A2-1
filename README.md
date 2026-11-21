@@ -68,6 +68,61 @@ $\theta_t=\mathrm{diag}((1-2lr)^t,(1-2w\,lr)^t)\,\theta_0$와 일치함을 검�
 - 자동 검증: acceptance_checks의 lr_ge_0_5_all_diverge_on_ellipse,
   lr_ge_0_5_divergence_examples_verified
 
+## 평가 문항 답변
+
+### 1. 모듈 설계와 행렬식 검증
+
+- 역할 분리: [src/linear_algebra.py](src/linear_algebra.py)는 행렬 연산
+  (변환, 면적, Power Iteration, SVD), [src/calculus.py](src/calculus.py)는
+  미분(중심차분, gradient 시각화), [src/optimizer.py](src/optimizer.py)는
+  파라미터 갱신(VanillaGD, Momentum, Adam, Newton)을 담당한다.
+  [scripts/run_all.py](scripts/run_all.py)가 이 모듈들을 조합해 모든 실험과
+  수치 검증을 실행하고 outputs/에 그림과 metrics.json을 저장한다.
+- 행렬식 검증은 det(A)를 그대로 믿지 않고 면적을 독립적으로 측정한다.
+  단위 원을 100개 꼭짓점 다각형으로 만들고, 변환 전후 면적을 신발끈 공식
+  (`polygon_area`)으로 각각 계산한 뒤, 면적비 after/before를
+  $|\det A|$와 비교한다(`area_report`). 최대 상대오차는 약 6.7e-16으로
+  1% 기준을 만족한다. 음의 행렬식은 방향 반전을 뜻하므로 절댓값과 비교한다.
+
+### 2. Power Iteration과 고유벡터
+
+- 테스트 행렬 $A=\begin{pmatrix}4&1\\1&3\end{pmatrix}$는 대칭 행렬이라
+  고유값이 모두 실수이고, 고유벡터가 서로 직교하며, 절댓값이 가장 큰
+  고유값(λ≈4.6180)이 유일하다. 그래서 반복 곱이 하나의 방향으로 수렴하고
+  np.linalg.eig 결과와 고유값·고유벡터를 모두 명확하게 비교할 수 있다.
+- 종료 조건: 잔차 $\|Av-\lambda v\|\le 10^{-10}\max(1,|\lambda|)$를 만족하면
+  멈추고, 최대 10,000회까지만 반복한다. λ는 Rayleigh quotient
+  $v^\top Av$로 계산한다. 이 행렬은 36회에 수렴했고 eig 대비 상대오차는 0이다.
+- 기하학적 의미: $Av=\lambda v$는 변환 A가 v를 회전시키지 않고 같은 직선
+  위에서 λ배로 늘이거나 줄인다는 뜻이다(λ<0이면 방향만 반대).
+  최대 고유벡터는 A가 가장 크게 늘이는 방향이다.
+
+### 3. 타원형 함수에서 Momentum
+
+- $f=x^2+10y^2$의 곡률(2차 미분)은 x 방향 2, y 방향 20으로 y 방향이
+  10배 가파르다. GD의 안정 조건은 가파른 y 방향(lr<0.1)이 정하므로 lr을
+  크게 잡을 수 없고, 그 lr로는 완만한 x 방향의 진행(계수 1−2lr)이 느리다.
+  lr>0.05이면 y 방향 계수 1−20lr이 음수가 되어 지그재그 진동도 생긴다.
+- Momentum은 기울기를 누적하므로 x 방향처럼 기울기 부호가 일정한 방향에서는
+  속도가 쌓여 진행이 빨라지고, y 방향처럼 부호가 바뀌는 성분은 서로 상쇄된다.
+- 실험 결과(초기점 (5,5), β=0.9, 반경 0.1 최초 진입 기준):
+
+  | lr | Vanilla GD | Momentum | 빠른 쪽 |
+  |---|---|---|---|
+  | 0.01 | 194회 | **37회** | Momentum |
+  | 0.09 | **21회** | 69회 | GD |
+
+  lr이 작아 GD가 느린 구간에서는 Momentum의 가속 이점이 크다. lr이 이미
+  충분히 크면 누적된 속도가 오버슈트를 만들어 오히려 늦어진다.
+  즉 Momentum의 이점은 학습률 설정에 따라 달라진다.
+  수치는 metrics.json의 bonus_optimizers와 ellipse에 기록되어 있다.
+
+### 참고: SVD k=100
+
+과제 조건(64×64 이하 이미지)에서는 특이값이 최대 64개이므로 k=100은
+유효 k=64(완전 복원)로 표시했다. 현재 svd_comparison.png는 이 조건을
+정확히 반영한다.
+
 ## 1. 설치
 
 Python **3.12 이상**을 사용한다. 고정 의존성 조합이 Python 3.12 이상을
