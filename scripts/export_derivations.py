@@ -1,6 +1,7 @@
 """Export notebook mathematics as plain Markdown with a source-file manifest."""
 
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +16,32 @@ NOTEBOOKS = (
 def cell_text(value):
     """Normalize notebook text stored as either a string or a list of lines."""
     return "".join(value) if isinstance(value, list) else value
+
+
+def github_math(markdown):
+    """Make notebook LaTeX survive GitHub's Markdown-before-math rendering.
+
+    GitHub processes Markdown escapes before rendering math, so ``\\{``,
+    ``\\;`` and ``\\\\`` lose a backslash, and a ``$$`` block directly under a
+    text line is not recognised as math. Display math therefore becomes a
+    fenced ``math`` block with blank lines around it, and inline math that
+    contains a backslash before punctuation uses GitHub's $`...`$ form.
+    """
+    def fence(match):
+        body = match.group(1).strip()
+        return "\n\n```math\n" + body + "\n```\n\n"
+    markdown = re.sub(r"\$\$(.+?)\$\$", fence, markdown, flags=re.S)
+
+    def inline(match):
+        body = match.group(1)
+        if re.search(r"\\[^A-Za-z]", body):
+            return "$`" + body + "`$"
+        return match.group(0)
+    parts = re.split(r"(```math\n.*?\n```)", markdown, flags=re.S)
+    parts = [part if part.startswith("```math") else
+             re.sub(r"(?<![\\$`])\$([^$\n`]+?)\$(?!`)", inline, part)
+             for part in parts]
+    return re.sub(r"\n{3,}", "\n\n", "".join(parts))
 
 
 def export_derivations():
@@ -55,7 +82,8 @@ def export_derivations():
         "- [고유값의 직접 계산 및 참조 비교](src/linear_algebra.py)",
         "- [전체 수치 검증 실행](scripts/run_all.py)", "",
     ])
-    (ROOT/"DERIVATIONS.md").write_text("\n".join(lines).rstrip()+"\n", encoding="utf-8")
+    text = github_math("\n".join(lines))
+    (ROOT/"DERIVATIONS.md").write_text(text.rstrip()+"\n", encoding="utf-8")
     return documents
 
 

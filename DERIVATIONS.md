@@ -29,67 +29,113 @@ NumPy 1차원 배열에서는 전치보다 연산 관례와 outer를 명확히 �
 
 #### 2. 순전파 수식과 손계산
 
-$$\sigma(z)=\frac{1}{1+e^{-z}},\qquad
-\sigma'(z)=\sigma(z)(1-\sigma(z)).$$
+```math
+\sigma(z)=\frac{1}{1+e^{-z}},\qquad
+\sigma'(z)=\sigma(z)(1-\sigma(z)).
+```
 
-$$z_1=W_1x+b_1=
+```math
+z_1=W_1x+b_1=
 [0.1\cdot1+0.2\cdot0,\;0.3\cdot1+0.4\cdot0]
-=[0.1,0.3]\quad(2,).$$
+=[0.1,0.3]\quad(2,).
+```
 
-$$a_1=\sigma(z_1)=
+```math
+a_1=\sigma(z_1)=
 [1/(1+e^{-0.1}),1/(1+e^{-0.3})]
-\approx[0.5249791875,0.5744425168]\quad(2,).$$
+\approx[0.5249791875,0.5744425168]\quad(2,).
+```
 
-$$z_2=W_2a_1+b_2
+```math
+z_2=W_2a_1+b_2
 =0.5(0.5249791875)+0.6(0.5744425168)
-\approx0.6071551038\quad().$$
+\approx0.6071551038\quad().
+```
 
-$$\hat y=\sigma(z_2)\approx0.6472915700\quad().$$
-$$L=-[y\log\hat y+(1-y)\log(1-\hat y)]
-=-\log(0.6472915700)\approx0.4349584369\quad().$$
+```math
+\hat y=\sigma(z_2)\approx0.6472915700\quad().
+```
+
+```math
+L=-[y\log\hat y+(1-y)\log(1-\hat y)]
+=-\log(0.6472915700)\approx0.4349584369\quad().
+```
 
 표시는 반올림하지만 다음 단계 계산에는 충분한 정밀도의 값을 유지한다.
 
 #### 3. 연쇄 법칙을 출력에서 입력 방향으로 전개
 
 **① 손실 → 예측 확률 (scalar)**
-$$\frac{\partial L}{\partial\hat y}
+
+```math
+\frac{\partial L}{\partial\hat y}
 =-\frac{y}{\hat y}+\frac{1-y}{1-\hat y}
-=-\frac1{0.6472915700}\approx-1.5448988468\quad().$$
+=-\frac1{0.6472915700}\approx-1.5448988468\quad().
+```
 
 **② 예측 확률 → 출력 logit (scalar, 필수 체크포인트)**
-$$\delta_2=\frac{\partial L}{\partial z_2}
+
+```math
+\delta_2=\frac{\partial L}{\partial z_2}
 =\frac{\partial L}{\partial\hat y}\hat y(1-\hat y)
-=\hat y-y\approx-0.3527084300\quad().$$
+=\hat y-y\approx-0.3527084300\quad().
+```
 
 **③ 출력 가중치와 편향**
-$$\frac{\partial L}{\partial W_2}
+
+```math
+\frac{\partial L}{\partial W_2}
 =\delta_2a_1
-\approx[-0.1851645850,-0.2026107182]\quad(2,),$$
-$$\frac{\partial L}{\partial b_2}
-=\delta_2\approx-0.3527084300\quad().$$
+\approx[-0.1851645850,-0.2026107182]\quad(2,),
+```
+
+```math
+\frac{\partial L}{\partial b_2}
+=\delta_2\approx-0.3527084300\quad().
+```
 
 **④ 은닉 활성화로 전파**
-$$\frac{\partial L}{\partial a_1}
+
+```math
+\frac{\partial L}{\partial a_1}
 =\delta_2W_2
-\approx[-0.1763542150,-0.2116250580]\quad(2,).$$
+\approx[-0.1763542150,-0.2116250580]\quad(2,).
+```
 
 **⑤ 은닉 logit으로 전파 (필수 체크포인트)**
-$$\delta_1=\frac{\partial L}{\partial z_1}
-=\frac{\partial L}{\partial a_1}\odot a_1\odot(1-a_1).$$
-$$\delta_{1,1}=(-0.1763542150)(0.5249791875)(0.4750208125)
-\approx-0.0439785158,$$
-$$\delta_{1,2}=(-0.2116250580)(0.5744425168)(0.4255574832)
-\approx-0.0517335044.$$
-$$\delta_1\approx[-0.0439785158,-0.0517335044]\quad(2,).$$
+
+```math
+\delta_1=\frac{\partial L}{\partial z_1}
+=\frac{\partial L}{\partial a_1}\odot a_1\odot(1-a_1).
+```
+
+```math
+\delta_{1,1}=(-0.1763542150)(0.5249791875)(0.4750208125)
+\approx-0.0439785158,
+```
+
+```math
+\delta_{1,2}=(-0.2116250580)(0.5744425168)(0.4255574832)
+\approx-0.0517335044.
+```
+
+```math
+\delta_1\approx[-0.0439785158,-0.0517335044]\quad(2,).
+```
 
 **⑥ 입력 가중치와 편향**
-$$\frac{\partial L}{\partial W_1}
+
+```math
+\frac{\partial L}{\partial W_1}
 =\delta_1x^T
 =\operatorname{outer}(\delta_1,x)
 \approx\begin{bmatrix}-0.0439785158&0\\-0.0517335044&0\end{bmatrix}
-\quad(2,2),$$
-$$\frac{\partial L}{\partial b_1}=\delta_1\quad(2,).$$
+\quad(2,2),
+```
+
+```math
+\frac{\partial L}{\partial b_1}=\delta_1\quad(2,).
+```
 
 추가로 $\partial L/\partial x=W_1^T\delta_1$이며 shape은 (2,)이다.
 두 번째 입력이 0이므로 $W_1$ 두 번째 열의 기울기가 0인 점도 확인한다.
@@ -119,9 +165,11 @@ $$\frac{\partial L}{\partial b_1}=\delta_1\quad(2,).$$
 
 #### 5. 중심차분으로 모든 학습 파라미터를 별도로 검증
 
-$$\frac{\partial L}{\partial\theta_i}
+```math
+\frac{\partial L}{\partial\theta_i}
 \approx\frac{L(\theta+h e_i)-L(\theta-h e_i)}{2h},
-\qquad h=10^{-5}.$$
+\qquad h=10^{-5}.
+```
 
 이는 독립적인 검증이며 역전파 구현을 대신하지 않는다.
 float64에서 모든 파라미터의 최대 절대오차가 $10^{-7}$ 이하여야 한다.
@@ -144,13 +192,24 @@ $N(\mu,\sigma^2)$ 관례를 사용하므로 $N(2,0.5)$의
 분산은 0.5, 표준편차는 $\sqrt{0.5}$이다. 모든 log는 자연로그다.
 
 #### 1. 정규분포 PDF와 베르누이 PMF
-$$p(x|\mu,\sigma^2)=\frac1{\sqrt{2\pi\sigma^2}}
-\exp\left[-\frac{(x-\mu)^2}{2\sigma^2}\right].$$
+
+```math
+p(x|\mu,\sigma^2)=\frac1{\sqrt{2\pi\sigma^2}}
+\exp\left[-\frac{(x-\mu)^2}{2\sigma^2}\right].
+```
+
 연속분포의 확률은 PDF의 구간 적분이며 한 점에서의 높이가 아니다.
-$$P(X=x)=p^x(1-p)^{1-x},\qquad x\in\{0,1\}.$$
+
+```math
+P(X=x)=p^x(1-p)^{1-x},\qquad x\in\{0,1\}.
+```
 
 #### 2. 소프트맥스와 수치 안정성
-$$q_k=\frac{\exp(z_k-m)}{\sum_j\exp(z_j-m)},\qquad m=\max_jz_j.$$
+
+```math
+q_k=\frac{\exp(z_k-m)}{\sum_j\exp(z_j-m)},\qquad m=\max_jz_j.
+```
+
 같은 상수 $m$을 빼도 비율은 같고 큰 logit에서 overflow를 피한다.
 softmax는 비음수 확률을 만들고 총합을 1로 정규화한다.
 
@@ -161,19 +220,26 @@ $y_i=f_\theta(x_i)+\epsilon_i$,
 $\epsilon_i\sim N(0,\sigma^2)$이다.
 $\sigma^2>0$는 모든 표본에서 같고 $\theta$와 무관한 고정값이다.
 
-$$\mathcal L(\theta)=\prod_{i=1}^n
+```math
+\mathcal L(\theta)=\prod_{i=1}^n
 \frac1{\sqrt{2\pi\sigma^2}}
-\exp\left[-\frac{(y_i-f_\theta(x_i))^2}{2\sigma^2}\right].$$
+\exp\left[-\frac{(y_i-f_\theta(x_i))^2}{2\sigma^2}\right].
+```
 
-$$\log\mathcal L(\theta)
+```math
+\log\mathcal L(\theta)
 =-\frac n2\log(2\pi\sigma^2)
--\frac1{2\sigma^2}\sum_i(y_i-f_\theta(x_i))^2.$$
+-\frac1{2\sigma^2}\sum_i(y_i-f_\theta(x_i))^2.
+```
 
 따라서
-$$\arg\max_\theta\mathcal L
+
+```math
+\arg\max_\theta\mathcal L
 =\arg\min_\theta[-\log\mathcal L]
 =\arg\min_\theta\sum_i(y_i-f_\theta(x_i))^2
-=\arg\min_\theta\frac1n\sum_i(y_i-f_\theta(x_i))^2.$$
+=\arg\min_\theta\frac1n\sum_i(y_i-f_\theta(x_i))^2.
+```
 
 고정된 양의 배율과 $\theta$에 무관한 상수를 제거했으므로 최적점이 같다.
 **MSE와 NLL의 숫자 자체가 같은 것은 아니다.**
@@ -182,32 +248,57 @@ $$\arg\max_\theta\mathcal L
 
 #### 4. Binary Cross-Entropy 최소화 = 베르누이 MLE
 
-$y_i\in\{0,1\}$, $p_i=f_\theta(x_i)\in(0,1)$라 하자.
-$$P(y_i|x_i;\theta)=p_i^{y_i}(1-p_i)^{1-y_i}.$$
+$`y_i\in\{0,1\}`$, $p_i=f_\theta(x_i)\in(0,1)$라 하자.
+
+```math
+P(y_i|x_i;\theta)=p_i^{y_i}(1-p_i)^{1-y_i}.
+```
+
 조건부 독립 표본의 log likelihood는
-$$\log\mathcal L(\theta)=
-\sum_i[y_i\log p_i+(1-y_i)\log(1-p_i)].$$
-$$-\frac1n\log\mathcal L(\theta)
+
+```math
+\log\mathcal L(\theta)=
+\sum_i[y_i\log p_i+(1-y_i)\log(1-p_i)].
+```
+
+```math
+-\frac1n\log\mathcal L(\theta)
 =-\frac1n\sum_i[y_i\log p_i+(1-y_i)\log(1-p_i)]
-=\operatorname{BCE}.$$
+=\operatorname{BCE}.
+```
+
 즉 베르누이 확률의 최대우도 추정과 평균 BCE 최소화는 동일한 최적점이다.
 
 #### 5. Categorical Cross-Entropy 최소화 = 카테고리 MLE
 
 $y_{ik}$는 정답의 one-hot 성분이고 $q_{ik}$는 softmax 확률이다.
-$$P(y_i|x_i;\theta)=\prod_{k=1}^K q_{ik}^{y_{ik}},$$
-$$-\frac1n\log\mathcal L(\theta)
+
+```math
+P(y_i|x_i;\theta)=\prod_{k=1}^K q_{ik}^{y_{ik}},
+```
+
+```math
+-\frac1n\log\mathcal L(\theta)
 =-\frac1n\sum_i\sum_k y_{ik}\log q_{ik}
-=\operatorname{CategoricalCE}.$$
+=\operatorname{CategoricalCE}.
+```
 
 회귀의 연속 오차에는 정규분포, 이진 분류에는 베르누이,
 상호 배타적인 다중 분류에는 카테고리 분포를 사용한다.
 
 #### 6. 보너스: Entropy, KL-Divergence, Cross-Entropy
 
-$$H(p)=-\sum_kp_k\log p_k,$$
-$$D_{KL}(p\Vert q)=\sum_kp_k\log\frac{p_k}{q_k},$$
-$$H(p,q)=-\sum_kp_k\log q_k=H(p)+D_{KL}(p\Vert q).$$
+```math
+H(p)=-\sum_kp_k\log p_k,
+```
+
+```math
+D_{KL}(p\Vert q)=\sum_kp_k\log\frac{p_k}{q_k},
+```
+
+```math
+H(p,q)=-\sum_kp_k\log q_k=H(p)+D_{KL}(p\Vert q).
+```
 
 $0\log0=0$으로 정의한다. $p_k>0$인데 $q_k=0$이면
 Cross-Entropy와 KL은 무한대다. 단위는 nats이며 KL은 비대칭이다.
