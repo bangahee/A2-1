@@ -215,6 +215,17 @@ class OptimizerTests(unittest.TestCase):
             np.testing.assert_allclose(path[-1], expected, rtol=1e-12)
             self.assertTrue(np.all(np.diff(np.linalg.norm(path, axis=1)) > 0))
 
+    def test_every_rate_ge_half_diverges_on_ellipse(self):
+        """On x²+10y² the y factor |1-20lr| ≥ 9, so every lr ≥ 0.5 diverges."""
+        initial = np.array([5., 5.])
+        for lr in [.5, .6, .75, 1., 1.1, 1.2, 1.5, 2.]:
+            path = optimize(lambda p: quadratic_gradient(p, 10), initial, VanillaGD(lr), 20)
+            expected = initial * np.array([1-2*lr, 1-20*lr])**20
+            np.testing.assert_allclose(path[-1], expected, rtol=1e-12)
+            norms = np.linalg.norm(path, axis=1)
+            self.assertTrue(np.all(np.diff(norms) > 0), lr)
+            self.assertGreater(norms[-1] / norms[0], 1e18)
+
     def test_momentum_zero_beta(self):
         """With beta zero the entire path must equal Vanilla GD."""
         a = optimize(quadratic_gradient, [5, 3], VanillaGD(.03), 30)

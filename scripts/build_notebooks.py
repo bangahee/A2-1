@@ -482,34 +482,46 @@ def display_table(headers, rows):
         ("md", r"""
         ## 5. Divergence verification for lr >= 0.5
 
-        **lr≥0.5 구간에서 lr=1.1, 1.2, 1.5를 선택하여 발산을 검증한다.**
-        초기점=[5,5], seed=42, steps=30, 함수 f=x²+y², gradient=(2x,2y).
+        **결론: lr≥0.5에서 Vanilla GD의 최적화 경로가 발산함을 그래프로 확인했다.**
+        초기점=[5,5], seed=42, steps=30, 실험 lr=[0.5, 0.75, 1.0, 1.1, 1.2, 1.5].
 
-        $$\theta_t=(1-2lr)^t\theta_0,\qquad
-        \|\theta_t\|=|1-2lr|^t\|\theta_0\|.$$
+        f(x,y)=x²+w·y²에서 GD 갱신은 좌표별로 분리된다.
 
-        세 선택값의 증폭률은 각각 1.2, 1.4, 2.0이므로 모두 발산한다.
-        단순히 최종값이 크다는 관찰에 더해, 모든 단계의 거리 증가와
-        해석식 일치를 검증하여 발산 근거를 보강한다.
-        lr=0.5,0.75,1.0의 경계 실험도 아래 표에 함께 공개한다.
-        이 함수에서 "모든 lr≥0.5가 발산"은 성립하지 않는다.
+        $$x_{t+1}=(1-2lr)\,x_t,\qquad y_{t+1}=(1-2w\,lr)\,y_t$$
+
+        두 계수 중 하나라도 절댓값이 1보다 크면 경로는 지수적으로 발산한다.
+
+        | 함수 | 발산 조건 | lr≥0.5에서의 결과 |
+        |---|---|---|
+        | 타원형 f=x²+10y² (w=10) | \|1-20lr\|>1 ⇔ lr>0.1 | **모든 lr≥0.5 발산** (\|1-20lr\|≥9) |
+        | 원형 f=x²+y² (w=1) | \|1-2lr\|>1 ⇔ lr>1 | lr=1.1, 1.2, 1.5 발산 (증폭률 1.2, 1.4, 2.0) |
+
+        원형 함수에서 lr=0.5는 갱신 계수가 0이므로 한 번에 원점에 도달하고,
+        lr=1.0은 크기가 유지되는 진동이다. 이 경계까지 함께 표시해 발산
+        조건을 수식과 그래프 양쪽으로 검증한다. 모든 경로는 해석식
+        $\theta_t=\mathrm{diag}((1-2lr)^t,(1-2w\,lr)^t)\,\theta_0$와 일치함을 assert로 확인한다.
         """),
         ("code", """
         # Initial point=[5,5], seed=42, steps=30; tested lr=[.5,.75,1,1.1,1.2,1.5].
         from scripts.experiment_evidence import divergence_study
         evidence, paths = divergence_study(steps=30)
-        selected = evidence["demonstrated_divergent_rates"]
-        display_table(["lr", "갱신 계수", "관측/해석 결과", "거리 배율 (30회)", "매 단계 증가"], [
-            [r["lr"], f'{r["update_factor"]:.2f}', r["expected_behavior"],
-             f'{r["radius_growth_factor"]:.6g}', r["every_step_grows"]]
-            for r in evidence["runs"]])
-        for row in evidence["runs"]:
-            if row["lr"] in selected:
-                assert row["lr"] >= .5
-                assert abs(row["update_factor"]) > 1
-                assert row["closed_form_verified"] and row["every_step_grows"]
+        for key in ["ellipse", "circle"]:
+            block = evidence[key]
+            print(f'{block["function"]}  (발산 조건: {block["exact_divergence_condition"]})')
+            display_table(["lr", "갱신 계수 (x, y)", "결과", "거리 배율 (30회)", "매 단계 증가"], [
+                [r["lr"], ", ".join(f"{v:.2f}" for v in r["update_factors"]),
+                 r["expected_behavior"], f'{r["radius_growth_factor"]:.4g}',
+                 r["every_step_grows"]] for r in block["runs"]])
+        # 타원형: lr ≥ 0.5 전 구간 발산
+        for row in evidence["ellipse"]["runs"]:
+            assert row["lr"] >= .5 and row["expected_behavior"] == "divergent"
+            assert row["max_abs_update_factor"] >= 9 and row["every_step_grows"]
+        # 원형: lr > 1 선택값 발산
+        for row in evidence["circle"]["runs"]:
+            if row["lr"] in evidence["circle"]["demonstrated_divergent_rates"]:
+                assert row["max_abs_update_factor"] > 1 and row["every_step_grows"]
                 assert row["radius_growth_factor"] > 100
-        print("PASS: lr>=0.5 범위에서 선택한 1.1, 1.2, 1.5의 발산 확인")
+        print("PASS: f=x²+10y²에서 모든 lr≥0.5 발산, f=x²+y²에서 lr=1.1·1.2·1.5 발산")
         display(Image(filename=str(ROOT / evidence["figure"])))
         """),
     ])

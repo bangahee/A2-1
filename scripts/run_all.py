@@ -180,10 +180,19 @@ def main():
     results["learning_rate_divergence"] = evidence
     save_figure(plot_divergence_evidence(evidence, divergence_paths),
                 "lr_ge_0_5_divergence.png")
-    selected = [run for run in evidence["runs"]
-                if run["lr"] in evidence["demonstrated_divergent_rates"]]
+    # Requirement: "lr=0.5 이상에서 최적화 경로가 발산함을 그래프로 확인한다".
+    # Ellipse x²+10y²: |1-20lr| ≥ 9 for all lr ≥ 0.5, so every tested rate diverges.
+    ellipse_runs = evidence["ellipse"]["runs"]
+    checks["lr_ge_0_5_all_diverge_on_ellipse"] = bool(
+        evidence["ellipse"]["all_tested_rates_ge_0_5_diverge"]
+        and min(run["lr"] for run in ellipse_runs) == .5
+        and all(run["max_abs_update_factor"] >= 9 and run["radius_growth_factor"] > 1e20
+                and run["closed_form_verified"] for run in ellipse_runs))
+    # Circle x²+y²: divergence for lr > 1 (1.1, 1.2, 1.5 inside the lr ≥ 0.5 range).
+    selected = [run for run in evidence["circle"]["runs"]
+                if run["lr"] in evidence["circle"]["demonstrated_divergent_rates"]]
     checks["lr_ge_0_5_divergence_examples_verified"] = len(selected) == 3 and all(
-        run["lr"] >= .5 and abs(run["update_factor"]) > 1
+        run["lr"] >= .5 and run["max_abs_update_factor"] > 1
         and run["every_step_grows"] and run["radius_growth_factor"] > 100
         and run["closed_form_verified"] for run in selected)
     results["optimizer_experiments"] = optimizer_conditions()

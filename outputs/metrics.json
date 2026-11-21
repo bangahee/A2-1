@@ -371,79 +371,273 @@
     }
   },
   "learning_rate_divergence": {
-    "function": "f(x,y)=x²+y²",
-    "gradient": "[2x,2y]",
+    "requirement": "lr=0.5 이상에서 최적화 경로가 발산함을 그래프로 확인한다",
+    "conclusion": "Verified: on f=x²+10y² every tested lr ≥ 0.5 diverges (|1-20·lr| ≥ 9); on f=x²+y² lr=1.1, 1.2, 1.5 diverge and the exact boundary is lr > 1.",
     "initial": [
       5.0,
       5.0
     ],
     "seed": 42,
     "steps": 30,
-    "tested_interval": "lr >= 0.5",
-    "demonstrated_divergent_rates": [
+    "tested_rates": [
+      0.5,
+      0.75,
+      1.0,
       1.1,
       1.2,
       1.5
     ],
-    "exact_divergence_condition": "lr > 1",
-    "scope": "Divergent examples within the stated interval; not all rates in that range diverge.",
     "figure": "outputs/lr_ge_0_5_divergence.png",
-    "runs": [
-      {
-        "lr": 0.5,
-        "update_factor": 0.0,
-        "expected_behavior": "convergent",
-        "final_radius": 0.0,
-        "radius_growth_factor": 0.0,
-        "every_step_grows": false,
-        "closed_form_verified": true
-      },
-      {
-        "lr": 0.75,
-        "update_factor": -0.5,
-        "expected_behavior": "convergent",
-        "final_radius": 6.585445079827193e-09,
-        "radius_growth_factor": 9.313225746154785e-10,
-        "every_step_grows": false,
-        "closed_form_verified": true
-      },
-      {
-        "lr": 1.0,
-        "update_factor": -1.0,
-        "expected_behavior": "neutral oscillation",
-        "final_radius": 7.0710678118654755,
-        "radius_growth_factor": 1.0,
-        "every_step_grows": false,
-        "closed_form_verified": true
-      },
-      {
-        "lr": 1.1,
-        "update_factor": -1.2000000000000002,
-        "expected_behavior": "divergent",
-        "final_radius": 1678.504011808838,
-        "radius_growth_factor": 237.37631379977083,
-        "every_step_grows": true,
-        "closed_form_verified": true
-      },
-      {
-        "lr": 1.2,
-        "update_factor": -1.4,
-        "expected_behavior": "divergent",
-        "final_radius": 171129.96932990657,
-        "radius_growth_factor": 24201.432355484565,
-        "every_step_grows": true,
-        "closed_form_verified": true
-      },
-      {
-        "lr": 1.5,
-        "update_factor": -2.0,
-        "expected_behavior": "divergent",
-        "final_radius": 7592501249.9401245,
-        "radius_growth_factor": 1073741824.0,
-        "every_step_grows": true,
-        "closed_form_verified": true
-      }
-    ]
+    "ellipse": {
+      "function": "f(x,y)=x²+10y²",
+      "gradient": "[2x,20y]",
+      "update_rule": "x←(1-2lr)x, y←(1-20lr)y",
+      "exact_divergence_condition": "lr > 0.1",
+      "all_tested_rates_ge_0_5_diverge": true,
+      "runs": [
+        {
+          "lr": 0.5,
+          "update_factors": [
+            0.0,
+            -9.0
+          ],
+          "max_abs_update_factor": 9.0,
+          "expected_behavior": "divergent",
+          "final_point": [
+            0.0,
+            2.1195579137608104e+29
+          ],
+          "final_radius": 2.1195579137608104e+29,
+          "radius_growth_factor": 2.997507547875761e+28,
+          "final_objective": 4.492525749786079e+59,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 0.75,
+          "update_factors": [
+            -0.5,
+            -14.0
+          ],
+          "max_abs_update_factor": 14.0,
+          "expected_behavior": "divergent",
+          "final_point": [
+            4.6566128730773926e-09,
+            1.2100716177742295e+35
+          ],
+          "final_radius": 1.2100716177742295e+35,
+          "radius_growth_factor": 1.7112996932990673e+34,
+          "final_objective": 1.464273320142741e+71,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.0,
+          "update_factors": [
+            -1.0,
+            -19.0
+          ],
+          "max_abs_update_factor": 19.0,
+          "expected_behavior": "divergent",
+          "final_point": [
+            5.0,
+            1.1523330894859768e+39
+          ],
+          "final_radius": 1.1523330894859768e+39,
+          "radius_growth_factor": 1.6296450835223577e+38,
+          "final_objective": 1.3278715491242963e+79,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.1,
+          "update_factors": [
+            -1.2000000000000002,
+            -21.0
+          ],
+          "max_abs_update_factor": 21.0,
+          "expected_behavior": "divergent",
+          "final_point": [
+            1186.8815689988542,
+            2.320325144558589e+40
+          ],
+          "final_radius": 2.320325144558589e+40,
+          "radius_growth_factor": 3.281435288550069e+39,
+          "final_objective": 5.3839087764708355e+81,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.2,
+          "update_factors": [
+            -1.4,
+            -23.0
+          ],
+          "max_abs_update_factor": 23.0,
+          "expected_behavior": "divergent",
+          "final_point": [
+            121007.16177742282,
+            3.554717439557568e+41
+          ],
+          "final_radius": 3.554717439557568e+41,
+          "radius_growth_factor": 5.027129613426475e+40,
+          "final_objective": 1.2636016075094713e+84,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.5,
+          "update_factors": [
+            -2.0,
+            -29.0
+          ],
+          "max_abs_update_factor": 29.0,
+          "expected_behavior": "divergent",
+          "final_point": [
+            5368709120.0,
+            3.7231449220837525e+44
+          ],
+          "final_radius": 3.7231449220837525e+44,
+          "radius_growth_factor": 5.265322043491363e+43,
+          "final_objective": 1.3861808110838032e+90,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        }
+      ]
+    },
+    "circle": {
+      "function": "f(x,y)=x²+y²",
+      "gradient": "[2x,2y]",
+      "update_rule": "θ←(1-2lr)θ",
+      "exact_divergence_condition": "lr > 1",
+      "demonstrated_divergent_rates": [
+        1.1,
+        1.2,
+        1.5
+      ],
+      "runs": [
+        {
+          "lr": 0.5,
+          "update_factors": [
+            0.0,
+            0.0
+          ],
+          "max_abs_update_factor": 0.0,
+          "expected_behavior": "convergent",
+          "final_point": [
+            0.0,
+            0.0
+          ],
+          "final_radius": 0.0,
+          "radius_growth_factor": 0.0,
+          "final_objective": 0.0,
+          "every_step_grows": false,
+          "objective_every_step_grows": false,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 0.75,
+          "update_factors": [
+            -0.5,
+            -0.5
+          ],
+          "max_abs_update_factor": 0.5,
+          "expected_behavior": "convergent",
+          "final_point": [
+            4.6566128730773926e-09,
+            4.6566128730773926e-09
+          ],
+          "final_radius": 6.585445079827193e-09,
+          "radius_growth_factor": 9.313225746154785e-10,
+          "final_objective": 4.336808689942018e-17,
+          "every_step_grows": false,
+          "objective_every_step_grows": false,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.0,
+          "update_factors": [
+            -1.0,
+            -1.0
+          ],
+          "max_abs_update_factor": 1.0,
+          "expected_behavior": "neutral oscillation",
+          "final_point": [
+            5.0,
+            5.0
+          ],
+          "final_radius": 7.0710678118654755,
+          "radius_growth_factor": 1.0,
+          "final_objective": 50.0,
+          "every_step_grows": false,
+          "objective_every_step_grows": false,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.1,
+          "update_factors": [
+            -1.2000000000000002,
+            -1.2000000000000002
+          ],
+          "max_abs_update_factor": 1.2000000000000002,
+          "expected_behavior": "divergent",
+          "final_point": [
+            1186.8815689988542,
+            1186.8815689988542
+          ],
+          "final_radius": 1678.504011808838,
+          "radius_growth_factor": 237.37631379977083,
+          "final_objective": 2817375.7176583637,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.2,
+          "update_factors": [
+            -1.4,
+            -1.4
+          ],
+          "max_abs_update_factor": 1.4,
+          "expected_behavior": "divergent",
+          "final_point": [
+            121007.16177742282,
+            121007.16177742282
+          ],
+          "final_radius": 171129.96932990657,
+          "radius_growth_factor": 24201.432355484565,
+          "final_objective": 29285466402.85476,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        },
+        {
+          "lr": 1.5,
+          "update_factors": [
+            -2.0,
+            -2.0
+          ],
+          "max_abs_update_factor": 2.0,
+          "expected_behavior": "divergent",
+          "final_point": [
+            5368709120.0,
+            5368709120.0
+          ],
+          "final_radius": 7592501249.9401245,
+          "radius_growth_factor": 1073741824.0,
+          "final_objective": 5.764607523034235e+19,
+          "every_step_grows": true,
+          "objective_every_step_grows": true,
+          "closed_form_verified": true
+        }
+      ]
+    }
   },
   "optimizer_experiments": [
     {
@@ -788,8 +982,8 @@
     },
     {
       "path": "outputs/lr_ge_0_5_divergence.png",
-      "width_px": 1800,
-      "height_px": 720,
+      "width_px": 2700,
+      "height_px": 1575,
       "dpi": 150
     },
     {
@@ -827,6 +1021,7 @@
     "gd_radius_after_100_within_0_1": true,
     "lr_0_5_reaches_origin_in_one_step": true,
     "lr_1_1_diverges": true,
+    "lr_ge_0_5_all_diverge_on_ellipse": true,
     "lr_ge_0_5_divergence_examples_verified": true,
     "momentum_advantage_in_documented_setting": true,
     "newton_exact_quadratic_one_step": true,

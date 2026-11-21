@@ -31,6 +31,7 @@ def main():
     checks = metrics["acceptance_checks"]
     assert len(checks) >= 22 and all(v is True for v in checks.values())
     assert checks["lr_ge_0_5_divergence_examples_verified"] is True
+    assert checks["lr_ge_0_5_all_diverge_on_ellipse"] is True
     assert metrics["power_iteration"]["reference_method"] == "np.linalg.eig"
     assert metrics["power_iteration"]["passed"] and metrics["power_iteration"]["eigenvector_passed"]
     assert {d["path"] for d in metrics["documents"]} == {

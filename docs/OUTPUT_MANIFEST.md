@@ -15,7 +15,7 @@ scripts/run_all.py가 실제 PNG 헤더에서 읽어 생성한다. 모든 그림
 | [outputs/gd_momentum_ellipse.png](../outputs/gd_momentum_ellipse.png) | 1050×900 | 150 |
 | [outputs/gradient_contours.png](../outputs/gradient_contours.png) | 975×900 | 150 |
 | [outputs/learning_rate_stability.png](../outputs/learning_rate_stability.png) | 1800×675 | 150 |
-| [outputs/lr_ge_0_5_divergence.png](../outputs/lr_ge_0_5_divergence.png) | 1800×720 | 150 |
+| [outputs/lr_ge_0_5_divergence.png](../outputs/lr_ge_0_5_divergence.png) | 2700×1575 | 150 |
 | [outputs/matrix_transformations.png](../outputs/matrix_transformations.png) | 2100×675 | 150 |
 | [outputs/probability_distributions.png](../outputs/probability_distributions.png) | 1650×600 | 150 |
 | [outputs/svd_comparison.png](../outputs/svd_comparison.png) | 2100×600 | 150 |
