@@ -26,7 +26,7 @@
 | VanillaGD 클래스 | src/optimizer.py | θ←θ-lr∇f |
 | lr=0.1,100회,반경0.1 이내 | metrics.circle | 초기점 (5,5), 최종 반경 약 1.44e-9 |
 | 등고선 위 점선 수렴 경로 | outputs/gd_momentum_circle.png | 초기점 포함 전체 101개 점 |
-| lr≥0.5 구간에서 발산 확인 | outputs/lr_ge_0_5_divergence.png, experiment_validation.ipynb cell-011 | lr=1.1,1.2,1.5; 해석식과 매 단계 거리 증가 검증 |
+| lr≥0.5에서 발산을 그래프로 확인 | outputs/lr_ge_0_5_divergence.png, experiment_validation.ipynb cell-011 | 타원형 x²+10y²: lr=0.5,0.75,1.0,1.1,1.2,1.5 모두 발산(\|1-20lr\|≥9); 원형 x²+y²: lr=1.1,1.2,1.5 발산; 해석식과 매 단계 거리 증가 검증 |
 | Momentum β=0.9 | src/optimizer.py | 두 함수에서 GD와 같은 Figure 비교 |
 | 타원형 GD/Momentum 비교 | outputs/gd_momentum_ellipse.png | lr=0.09에서의 실제 결과 |
 | 타원형 Momentum 이점 확인 | outputs/bonus_optimizer_paths.png, bonus_optimizer_convergence.png | 같은 lr=0.01에서 최초 진입 194→37회 |
@@ -49,8 +49,8 @@
 
 ## 실행으로 확인하는 제출 상태
 
-1. python -m unittest discover -s tests -v → 46 tests, OK.
-2. python -m scripts.run_all → 22개 수치 허용 기준 PASS.
+1. python -m unittest discover -s tests -v → 47 tests, OK.
+2. python -m scripts.run_all → 23개 수치 허용 기준 PASS.
 3. python -m scripts.execute_notebooks → 세 노트북의 총 16개 code cell PASS.
 4. python -m scripts.verify_submission → 14개 PNG와 실행본 구조 PASS.
 5. python -m scripts.check_conventions → 커밋 형식과 브랜치 이름 PASS.

@@ -24,30 +24,49 @@
 DERIVATIONS.md는 두 노트북의 수식과 손계산 비교표를 텍스트로도 제공한다.
 계산 구현과 참조 비교는 분리되어 있으며 power_iteration은 eig를 호출하지 않는다.
 
-## 학습률에 따른 발산 실험
+## 학습률에 따른 발산 실험 (lr ≥ 0.5)
 
-**lr≥0.5 구간에서 선택한 lr=1.1, 1.2, 1.5의 발산을 확인했다.**
-함수는 f(x,y)=x²+y², 초기점은 (5,5), 시드는 42, 반복 수는 30이다.
-세 경우 모두 매 단계 원점까지의 거리와 목적함수가 증가하며,
-각 좌표는 해석식 $\theta_t=(1-2lr)^t\theta_0$와 일치한다.
+**lr=0.5 이상에서 Vanilla GD의 최적화 경로가 발산함을 그래프로 확인했다.**
+초기점 (5,5), 시드 42, 반복 30회, 실험한 lr은 0.5, 0.75, 1.0, 1.1, 1.2, 1.5다.
 
-| lr | 매 단계 거리 증폭률 | 30회 후 거리 / 초기 거리 | 결과 |
+f(x,y)=x²+w·y²에서 GD 갱신은 x←(1−2lr)x, y←(1−2w·lr)y로 분리되므로
+두 계수 중 하나의 절댓값이 1을 넘으면 경로가 지수적으로 발산한다.
+
+| 함수 | 발산 조건 | lr≥0.5 결과 |
+|---|---|---|
+| 타원형 f=x²+10y² | \|1−20lr\|>1 ⇔ lr>0.1 | **lr=0.5, 0.75, 1.0, 1.1, 1.2, 1.5 모두 발산** |
+| 원형 f=x²+y² | \|1−2lr\|>1 ⇔ lr>1 | lr=1.1, 1.2, 1.5 발산 |
+
+타원형 함수의 30회 후 원점까지 거리 배율은 다음과 같다.
+
+| lr | y 갱신 계수 1−20lr | 30회 후 거리 / 초기 거리 | 결과 |
 |---|---|---|---|
-| 1.1 | 1.2 | 약 237.376배 | 발산 |
-| 1.2 | 1.4 | 약 24,201.432배 | 발산 |
-| 1.5 | 2.0 | 1,073,741,824배 | 발산 |
+| 0.5 | −9 | 약 3.0e28배 | 발산 |
+| 0.75 | −14 | 약 1.7e34배 | 발산 |
+| 1.0 | −19 | 약 1.6e38배 | 발산 |
+| 1.1 | −21 | 약 3.3e39배 | 발산 |
+| 1.2 | −23 | 약 5.0e40배 | 발산 |
+| 1.5 | −29 | 약 5.3e43배 | 발산 |
 
-![학습률에 따른 발산](outputs/lr_ge_0_5_divergence.png)
+원형 함수에서는 lr=1.1, 1.2, 1.5의 매 단계 거리 증폭률이 1.2, 1.4, 2.0이며,
+30회 후 각각 약 237배, 2.4e4배, 1.1e9배로 발산한다. 모든 경우에서 매 단계
+원점까지의 거리와 목적함수가 증가하고, 각 좌표가 해석식
+$\theta_t=\mathrm{diag}((1-2lr)^t,(1-2w\,lr)^t)\,\theta_0$와 일치함을 검증했다.
 
-같은 조건의 lr=0.5는 한 번에 원점에 도달하고, 0.75는 수렴,
-1.0은 크기가 유지되는 진동을 보인다. 따라서 위 결과는 선택한 세
-학습률의 발산을 뜻하며, lr≥0.5 전 구간에 대한 주장은 아니다.
+![lr ≥ 0.5에서의 발산 경로](outputs/lr_ge_0_5_divergence.png)
+
+그림 윗줄은 타원형 함수(모든 lr≥0.5 발산), 아랫줄은 원형 함수다.
+첫 열은 등고선 위 점선 경로, 둘째 열은 좌표/거리, 셋째 열은 목적함수다.
+원형 함수에서 lr=0.5는 계수가 0이라 한 번에 원점에 도달하고 lr=1.0은
+진동만 하므로, 아랫줄에 점선으로 함께 표시해 발산 경계 lr>1을 보여 준다.
 
 - 실행: python -m scripts.run_all
 - 구현: scripts/experiment_evidence.py의 divergence_study
 - 노트북: [experiment_validation.ipynb](notebooks/experiment_validation.ipynb)의
   「5. Divergence verification for lr >= 0.5」, cell-010~cell-011
-- 수치 기록: outputs/metrics.json의 learning_rate_divergence
+- 수치 기록: outputs/metrics.json의 learning_rate_divergence (ellipse, circle)
+- 자동 검증: acceptance_checks의 lr_ge_0_5_all_diverge_on_ellipse,
+  lr_ge_0_5_divergence_examples_verified
 
 ## 1. 설치
 
@@ -84,10 +103,10 @@ python -m scripts.check_conventions
 
 | 명령 | 기대 결과 |
 |---|---|
-| unittest | Ran 46 tests / OK |
-| run_all | All 22 acceptance checks passed |
+| unittest | Ran 47 tests / OK |
+| run_all | All 23 acceptance checks passed |
 | execute_notebooks | backprop_derivation 4개, experiment_validation 6개, probability_loss 6개 code cell PASS |
-| verify_submission | 14 PNGs, 22 acceptance checks, 3 executed notebooks |
+| verify_submission | 14 PNGs, 23 acceptance checks, 3 executed notebooks |
 | check_conventions | 모든 실제 커밋과 브랜치 규칙 PASS |
 
 검증 실패 시 명령은 0이 아닌 종료 코드를 반환한다. 체크인한 이미지
@@ -122,6 +141,7 @@ python -m scripts.execute_notebooks
 | 고정 신경망 출력/BCE | 0.6472915700 / 0.4349584369 | 손계산과 4자리 일치 |
 | 전체 파라미터 gradient check | 최대 절대오차 약 3.7e-12 | 추가 검증 1e-7 이내 |
 | GD, lr=0.1, 100회 | 원점까지 거리 약 1.44e-9 | 반경 0.1 이내 |
+| GD, lr≥0.5 (0.5~1.5) | 타원형 x²+10y²에서 전부 발산, 30회 후 거리 3.0e28배 이상 | lr≥0.5 발산 그래프 |
 | softmax([1000,1001,1002]) | 합=0.9999999999999999 | 합 오차 1e-6 이내 |
 | 타원형, 같은 lr=0.01 | 최초 반경 진입 GD 194회, Momentum 37회 | 가속 이점 관찰 |
 | Newton, 타원형 이차 함수 | 1회에 원점 도달 | Hessian 기반 비교 |
@@ -168,7 +188,7 @@ Adam은 좌표별 보폭을 조절하며 사용한 lr=0.1을 그래프에 명시
   Bernoulli–BCE, categorical–CE의 MLE 유도, Entropy/KL/CE.
 - [experiment_validation.ipynb](notebooks/experiment_validation.ipynb):
   출력 해상도, 고유값 비교, 중심차분 h 실험, 전체 하이퍼파라미터,
-  학습률에 따른 발산 사례.
+  lr≥0.5 발산 검증(타원형 전 구간, 원형 lr>1).
 
 ### 수식과 계산의 위치
 
@@ -183,7 +203,7 @@ Adam은 좌표별 보폭을 조절하며 사용한 lr=0.1을 그래프에 명시
 | Power Iteration·np.linalg.eig 비교 | experiment_validation.ipynb / cell-005 (6번째 셀, Code 3) |
 | h별 오차표와 그래프 | experiment_validation.ipynb / cell-007 |
 | 초기점·seed·steps·lr·beta 요약 | experiment_validation.ipynb / cell-009 |
-| lr≥0.5 구간의 발산 사례 | experiment_validation.ipynb / cell-011 |
+| lr≥0.5 발산 검증 (타원형·원형) | experiment_validation.ipynb / cell-011 |
 | 큰 양수·음수·혼합 logits | probability_loss.ipynb / cell-005 |
 | MSE–MLE 유도 | probability_loss.ipynb / cell-006 |
 | Bernoulli·categorical CE–MLE 유도 | probability_loss.ipynb / cell-008 |
@@ -231,7 +251,7 @@ $$-\sum_i[y_i\log p_i+(1-y_i)\log(1-p_i)]$$
 |---|---|
 | outputs/matrix_transformations.png | 2100×675 px |
 | outputs/svd_comparison.png | 2100×600 px |
-| outputs/lr_ge_0_5_divergence.png | 1800×720 px |
+| outputs/lr_ge_0_5_divergence.png | 2700×1575 px |
 | outputs/derivative_step_study.png | 1200×675 px |
 
 전체 14개 PNG의 파일명·크기는 [OUTPUT_MANIFEST.md](docs/OUTPUT_MANIFEST.md)와
@@ -242,8 +262,9 @@ metrics.figures에 기록한다. SVD의 k=10,50,100 복원은 한 비교 Figure�
 ## 5. 원문의 모순과 해석
 
 1. y_true가 빠져 있으므로 참고 예제와 동일하게 1로 정했다.
-2. f=x²+y²에서 lr=0.5는 한 번에 원점에 도달한다. 실제 발산은 lr>1이다.
-   0.1, 0.5, 0.75, 1.0, 1.1, 1.2, 1.5를 실험했다.
+2. lr≥0.5 발산 요구사항은 타원형 f=x²+10y²에서 lr=0.5~1.5 전 구간의
+   발산으로 확인했다. 원형 f=x²+y²만 보면 lr=0.5는 한 번에 원점에
+   도달하고 발산 경계는 lr>1이므로, 이 경계도 함께 그래프로 제시했다.
 3. 64×64에서 k=100개의 특이값을 사용할 수 없어 유효 k=64로 명시했다.
 4. 숨김층 두 번째 logit의 올바른 기울기는 -0.0517이다.
 5. N(2,0.5)의 두 번째 인수는 분산으로 해석했다.
@@ -267,7 +288,7 @@ A2-1/
 ├── data/                     # 64×64 회색조 NPY 및 출처
 ├── outputs/                  # PNG 14개, metrics.json
 ├── scripts/                  # 생성·실행·검증
-├── tests/test_mathematics.py  # 독립 기준과 경계 사례 46개
+├── tests/test_mathematics.py  # 독립 기준과 경계 사례 47개
 ├── docs/                     # 원문, 수학적 결정, 점검표
 ├── .github/workflows/        # Python 3.12/3.14 CI
 ├── .githooks/                # 커밋 메시지와 push 브랜치 이름 검사
